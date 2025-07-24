@@ -156,7 +156,21 @@ const EventForm = ({ onSuccess }) => {
           marginBottom: '1rem',
           fontSize: '0.9rem'
         }}>
-          📊 Events: {eventCount}/3 | Each event can have up to 20 attendees
+          📊 Events: {eventCount}/3 | 👥 Each event limited to maximum 20 attendees
+        </div>
+      )}
+      
+      {!isEditing && (
+        <div style={{ 
+          background: '#fff3e0', 
+          color: '#f57c00', 
+          padding: '0.75rem', 
+          borderRadius: '6px', 
+          marginBottom: '1rem',
+          fontSize: '0.9rem',
+          border: '1px solid #ffb74d'
+        }}>
+          ⚠️ <strong>Important:</strong> All events are automatically limited to a maximum of 20 attendees for optimal game experience.
         </div>
       )}
       
@@ -229,7 +243,18 @@ const EventForm = ({ onSuccess }) => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="maxAttendees">👥 Attendee Limit (Max: 20)</label>
+          <label htmlFor="maxAttendees">👥 Attendee Limit</label>
+          <div style={{ 
+            background: '#f3e5f5', 
+            color: '#7b1fa2', 
+            padding: '0.5rem', 
+            borderRadius: '4px', 
+            marginBottom: '0.5rem',
+            fontSize: '0.85rem',
+            border: '1px solid #ce93d8'
+          }}>
+            🚫 <strong>Maximum limit: 20 attendees per event</strong> - This cannot be exceeded
+          </div>
           <input
             type="number"
             id="maxAttendees"
@@ -238,10 +263,10 @@ const EventForm = ({ onSuccess }) => {
             onChange={handleChange}
             min="1"
             max="20"
-            placeholder="Maximum 20 attendees"
+            placeholder="Enter limit (1-20, default: 20)"
           />
           <small style={{ color: '#666', fontSize: '0.8rem', display: 'block', marginTop: '0.25rem' }}>
-            Set maximum number of attendees (1-20). Default is 20 if left empty.
+            Set maximum number of attendees (1-20). Will default to 20 if left empty.
           </small>
         </div>
 
