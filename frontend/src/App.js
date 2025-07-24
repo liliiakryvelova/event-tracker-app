@@ -4,6 +4,7 @@ import EventForm from './components/EventForm';
 import EventDetail from './components/EventDetail';
 import Login from './components/Login';
 import Header from './components/Header';
+import Footer from './components/Footer';
 import { UserProvider, useUser } from './contexts/UserContext';
 import { getEvents } from './services/eventService';
 
@@ -163,6 +164,8 @@ const AppContent = () => {
           />
         )}
       </div>
+      
+      <Footer />
     </div>
   );
 };
