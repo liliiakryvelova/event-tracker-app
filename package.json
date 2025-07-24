@@ -1,0 +1,35 @@
+{
+  "name": "event-tracker-app",
+  "version": "1.0.0",
+  "description": "An event tracking application with React frontend, Node.js backend, and bot functionality",
+  "main": "backend/index.js",
+  "scripts": {
+    "start": "node backend/index.js",
+    "dev": "nodemon backend/index.js",
+    "client": "cd frontend && npm start",
+    "server": "nodemon backend/index.js",
+    "dev:full": "concurrently \"npm run server\" \"npm run client\"",
+    "install-all": "npm install && cd frontend && npm install",
+    "build": "cd frontend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "production": "NODE_ENV=production node backend/index.js"
+  },
+  "keywords": [
+    "event-tracker",
+    "react",
+    "nodejs",
+    "bot"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "body-parser": "^1.20.2",
+    "fs-extra": "^11.1.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "concurrently": "^8.2.0"
+  }
+}
