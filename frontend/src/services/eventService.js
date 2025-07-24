@@ -4,6 +4,10 @@ const API_BASE_URL = process.env.NODE_ENV === 'production'
   ? process.env.REACT_APP_API_URL || 'https://event-tracker-app-u25w.onrender.com/api'
   : 'http://localhost:8000/api';
 
+console.log('🔧 Environment:', process.env.NODE_ENV);
+console.log('🔧 REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
+console.log('🔧 Final API_BASE_URL:', API_BASE_URL);
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
