@@ -1,6 +1,19 @@
 # Event Tracker App
 
-A full-stack event tracking application with React frontend, Node.js backend, JSON database, and bot functionality.
+A full-stack event tracking application with React frontend, Node.js backend, PostgreSQL database, and real-time features.
+
+## 🚀 Demo Access
+
+**Live Demo:** [https://event-tracker-frontend-qv6e.onrender.com/](https://event-tracker-frontend-qv6e.onrender.com/)
+
+### Demo Credentials:
+- **Username:** `admin`
+- **Password:** `admin123`
+- **Role:** Admin (Can create/edit/delete events)
+
+### Access Levels:
+- 🌐 **Everyone** (including guests): View events, join/leave events
+- 👑 **Admin only**: Create events, edit events, delete events, manage attendees
 
 ## Project Structure
 
@@ -60,24 +73,6 @@ event-tracker-app/
 ### Prerequisites
 - Node.js (v14 or higher)
 - npm or yarn
-
-### Demo Login Credentials
-
-The application supports both **guest access** and **admin authentication**:
-
-#### Guest Access (No Login Required)
-- **View all events** - Browse all events without logging in
-- **Join events** - Add yourself to event attendee lists
-- **Leave events** - Remove yourself from events you've joined
-
-#### Admin Login Required
-| Username | Password | Role | Additional Permissions |
-|----------|----------|------|----------------------|
-| `admin` | `admin123` | Admin | Create, edit, and delete events + manage attendees |
-
-**Access Summary:**
-- 🌐 **Everyone** (including guests): View events, join/leave events
-- 👑 **Admin only**: Create events, edit events, delete events, manage attendees
 
 ### Installation
 

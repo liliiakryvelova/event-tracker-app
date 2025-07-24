@@ -32,10 +32,6 @@ const Login = () => {
     setLoading(false);
   };
 
-  const demoCredentials = [
-    { username: 'admin', password: 'admin123', role: 'Admin (Can create/edit/delete events)' }
-  ];
-
   return (
     <div className="container" style={{ maxWidth: '400px', marginTop: '2rem' }}>
       <div className="card">
@@ -81,19 +77,6 @@ const Login = () => {
             {loading ? 'Logging in...' : '🚀 Login'}
           </button>
         </form>
-
-        <div style={{ marginTop: '2rem', padding: '1rem', backgroundColor: '#f8f9fa', borderRadius: '4px' }}>
-          <h4>Demo Credentials:</h4>
-          <div style={{ fontSize: '0.9rem' }}>
-            {demoCredentials.map((cred, index) => (
-              <div key={index} style={{ marginBottom: '0.5rem' }}>
-                <strong>{cred.username}</strong> / {cred.password}
-                <br />
-                <em style={{ color: '#666' }}>{cred.role}</em>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   );
