@@ -4,7 +4,7 @@ A full-stack event tracking application with React frontend, Node.js backend, Po
 
 ## 🚀 Demo Access
 
-**Live Demo:** [https://event-tracker-frontend-qv6e.onrender.com/](https://event-tracker-frontend-qv6e.onrender.com/)
+**Live Demo:** [https://catchball-seattle.onrender.com/](https://catchball-seattle.onrender.com/)
 
 ### Demo Credentials:
 - **Username:** `admin`

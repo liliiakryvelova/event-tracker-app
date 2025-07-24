@@ -85,7 +85,7 @@ app.get('/', (req, res) => {
       'GET /api/health': 'Health check',
       'GET /api/status': 'Database status'
     },
-    frontend: 'https://event-tracker-app-frontend.onrender.com',
+    frontend: 'https://catchball-seattle.onrender.com',
     documentation: 'Visit the endpoints above to interact with the API'
   });
 });
@@ -278,6 +278,15 @@ app.get('*', (req, res) => {
   // Don't handle API routes here
   if (req.path.startsWith('/api/')) {
     return res.status(404).json({ error: 'API endpoint not found' });
+  }
+  
+  // Redirect specific routes to home page on reload
+  const redirectRoutes = ['/login', '/create', '/edit'];
+  const shouldRedirect = redirectRoutes.some(route => req.path.startsWith(route));
+  
+  if (shouldRedirect) {
+    console.log(`Redirecting ${req.path} to home page`);
+    return res.redirect(301, '/');
   }
   
   const indexPath = path.join(frontendPath, 'index.html');

@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: event-tracker-frontend
+    name: catchball-seattle
     runtime: static
     buildCommand: cd frontend && npm ci && npm run build
     staticPublishPath: ./frontend/build
