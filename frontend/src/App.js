@@ -78,26 +78,22 @@ const AppContent = () => {
               path="/login" 
               element={<Login />} 
             />
-            {canCreate() && (
-              <>
-                <Route 
-                  path="/create" 
-                  element={
-                    <EventForm 
-                      onSuccess={refreshEvents}
-                    />
-                  } 
+            <Route 
+              path="/create" 
+              element={
+                <EventForm 
+                  onSuccess={refreshEvents}
                 />
-                <Route 
-                  path="/edit/:id" 
-                  element={
-                    <EventForm 
-                      onSuccess={refreshEvents}
-                    />
-                  } 
+              } 
+            />
+            <Route 
+              path="/edit/:id" 
+              element={
+                <EventForm 
+                  onSuccess={refreshEvents}
                 />
-              </>
-            )}
+              } 
+            />
             <Route 
               path="/event/:id" 
               element={

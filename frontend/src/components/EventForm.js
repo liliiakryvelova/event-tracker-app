@@ -1,11 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { createEvent, updateEvent, getEvent, getEvents } from '../services/eventService';
+import { useUser } from '../contexts/UserContext';
 
 const EventForm = ({ onSuccess }) => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { canCreate } = useUser();
   const isEditing = !!id;
+
+  // Redirect if user cannot create events
+  useEffect(() => {
+    if (!canCreate()) {
+      navigate('/login');
+      return;
+    }
+  }, [canCreate, navigate]);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -23,6 +33,11 @@ const EventForm = ({ onSuccess }) => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [eventCount, setEventCount] = useState(0);
+
+  // Show loading while checking authentication
+  if (!canCreate()) {
+    return <div className="loading">Checking permissions...</div>;
+  }
 
   useEffect(() => {
     const loadData = async () => {
