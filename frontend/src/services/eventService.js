@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? process.env.REACT_APP_API_URL || 'https://your-app.railway.app/api'
+  ? process.env.REACT_APP_API_URL || 'https://event-tracker-app-u25w.onrender.com/api'
   : 'http://localhost:8000/api';
 
 const api = axios.create({
