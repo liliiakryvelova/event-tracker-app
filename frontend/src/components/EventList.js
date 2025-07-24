@@ -41,14 +41,6 @@ const EventList = ({ events, loading, error, onRefresh, onEditEvent, onViewEvent
       <div className="card">
         <h2>No Events Found</h2>
         <p>No events have been created yet.</p>
-        {canCreate() && (
-          <button 
-            onClick={() => onEditEvent && onEditEvent('create')} 
-            className="btn"
-          >
-            Create Your First Event
-          </button>
-        )}
         {!isAuthenticated() && (
           <p style={{ marginTop: '1rem', color: '#666', fontStyle: 'italic' }}>
             Please sign in to create events.
