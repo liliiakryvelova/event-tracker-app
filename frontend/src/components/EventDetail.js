@@ -250,10 +250,7 @@ const EventDetail = ({ onRefresh }) => {
       <div className="error">
         {error}
         <div style={{ marginTop: '1rem' }}>
-          <button className="btn" onClick={loadEvent}>
-            Try Again
-          </button>
-          <Link to="/" className="btn" style={{ marginLeft: '0.5rem' }}>
+          <Link to="/" className="btn">
             Back to Events
           </Link>
         </div>
@@ -273,20 +270,8 @@ const EventDetail = ({ onRefresh }) => {
 
   return (
     <div>
-      <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ marginBottom: '2rem' }}>
         <Link to="/" className="btn">← Back to Events</Link>
-        <button 
-          className="btn" 
-          onClick={() => loadEvent(false)}
-          disabled={loading}
-          title="Refresh event data from server"
-          style={{ 
-            fontSize: '0.9rem',
-            padding: '0.4rem 0.8rem'
-          }}
-        >
-          🔄 Refresh
-        </button>
       </div>
 
       <div className="card">

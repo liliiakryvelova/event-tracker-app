@@ -33,9 +33,6 @@ const EventList = ({ events, loading, error, onRefresh }) => {
     return (
       <div className="error">
         {error}
-        <button className="btn" onClick={onRefresh} style={{marginLeft: '1rem'}}>
-          Try Again
-        </button>
       </div>
     );
   }
@@ -55,11 +52,8 @@ const EventList = ({ events, loading, error, onRefresh }) => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <h2>📅 All Events ({events.length})</h2>
         <div>
-          <button className="btn" onClick={onRefresh}>
-            🔄 Refresh
-          </button>
           {!isAuthenticated() && (
-            <span style={{ marginLeft: '1rem', fontSize: '0.9rem', color: '#666' }}>
+            <span style={{ fontSize: '0.9rem', color: '#666' }}>
               👤 You're browsing as a guest - you can view and join events
             </span>
           )}
