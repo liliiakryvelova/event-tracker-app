@@ -24,21 +24,21 @@ app.use((req, res, next) => {
   next();
 });
 
-// Middleware
-app.use(cors());
+// CORS configuration for separate frontend deployment
+app.use(cors({
+  origin: [
+    'https://catchball-seattle.onrender.com',
+    'https://event-tracker-frontend-qv6e.onrender.com', // Keep old URL for transition
+    'http://localhost:3000' // For local development
+  ],
+  credentials: true
+}));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Serve static files from frontend build
-const frontendPath = path.join(__dirname, '../frontend/build');
-console.log('Frontend build path:', frontendPath);
-app.use(express.static(frontendPath));
-
-// Add explicit static file serving with proper headers
-app.use(express.static(frontendPath, {
-  maxAge: '1d',
-  etag: false
-}));
+// Since frontend is deployed separately on Render, we don't serve static files from backend
+// The frontend is available at: https://catchball-seattle.onrender.com
+console.log('Backend API server - Frontend deployed separately at: https://catchball-seattle.onrender.com');
 
 // Validation function for event data
 const validateEventData = (eventData) => {
@@ -86,7 +86,9 @@ app.get('/', (req, res) => {
       'GET /api/status': 'Database status'
     },
     frontend: 'https://catchball-seattle.onrender.com',
-    documentation: 'Visit the endpoints above to interact with the API'
+    backend: 'This API service',
+    documentation: 'Visit the endpoints above to interact with the API',
+    note: 'Frontend is deployed separately as a static site'
   });
 });
 
@@ -177,42 +179,14 @@ app.get('/api/health', (req, res) => {
 
 // Debug route to check frontend build status
 app.get('/api/debug/frontend', (req, res) => {
-  const fs = require('fs');
-  const indexPath = path.join(frontendPath, 'index.html');
-  
-  try {
-    const exists = fs.existsSync(frontendPath);
-    const indexExists = fs.existsSync(indexPath);
-    let files = [];
-    let indexContent = null;
-    
-    if (exists) {
-      files = fs.readdirSync(frontendPath);
-    }
-    
-    if (indexExists) {
-      indexContent = fs.readFileSync(indexPath, 'utf8').substring(0, 500) + '...';
-    }
-    
-    res.json({
-      frontendPath: frontendPath,
-      frontendDirExists: exists,
-      indexHtmlExists: indexExists,
-      indexPath: indexPath,
-      files: files.slice(0, 20), // Limit to first 20 files
-      indexPreview: indexContent,
-      currentWorkingDir: process.cwd(),
-      nodeEnv: process.env.NODE_ENV,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    res.status(500).json({
-      error: error.message,
-      frontendPath: frontendPath,
-      currentWorkingDir: process.cwd(),
-      timestamp: new Date().toISOString()
-    });
-  }
+  res.json({
+    message: 'Frontend is deployed separately as a static site',
+    frontendUrl: 'https://catchball-seattle.onrender.com',
+    backendUrl: 'https://event-tracker-backend.onrender.com',
+    deploymentType: 'Separate frontend and backend services',
+    note: 'Backend does not serve static files - frontend is deployed independently',
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Debug route to check what routes are being hit
@@ -293,55 +267,27 @@ app.get('/api/db-integrity', async (req, res) => {
   }
 });
 
-// Catch-all handler: send back React's index.html file for any non-API routes
-app.get('*', (req, res) => {
-  // Don't handle API routes here
-  if (req.path.startsWith('/api/')) {
-    return res.status(404).json({ error: 'API endpoint not found' });
-  }
-  
-  // Temporarily disable redirect to debug 404 issues
-  // const redirectRoutes = ['/login', '/create', '/edit'];
-  // const shouldRedirect = redirectRoutes.some(route => req.path.startsWith(route));
-  
-  // if (shouldRedirect) {
-  //   console.log(`Redirecting ${req.path} to home page`);
-  //   return res.redirect(301, '/');
-  // }
-  
-  const indexPath = path.join(frontendPath, 'index.html');
-  console.log(`Serving React app for route: ${req.path}`);
-  console.log(`Index.html path: ${indexPath}`);
-  console.log(`Current working directory: ${process.cwd()}`);
-  
-  // Check if index.html exists
-  const fs = require('fs');
-  if (fs.existsSync(indexPath)) {
-    console.log(`✅ Found index.html, serving file`);
-    res.sendFile(indexPath);
-  } else {
-    console.error(`❌ index.html not found at: ${indexPath}`);
-    
-    // Try to list what's actually in the directory
-    const parentDir = path.dirname(indexPath);
-    console.log(`Checking parent directory: ${parentDir}`);
-    
-    if (fs.existsSync(parentDir)) {
-      const parentFiles = fs.readdirSync(parentDir);
-      console.log(`Files in parent directory:`, parentFiles);
-    }
-    
-    res.status(404).send(`
-      <h1>Frontend Build Not Found</h1>
-      <p>The React app build files are not available.</p>
-      <p><strong>Expected path:</strong> ${indexPath}</p>
-      <p><strong>Current working dir:</strong> ${process.cwd()}</p>
-      <p><strong>Frontend path:</strong> ${frontendPath}</p>
-      <p>Please run 'npm run build' in the frontend directory.</p>
-      <hr>
-      <p><a href="/api/debug/frontend">Debug: Check frontend build status</a></p>
-    `);
-  }
+// API-only routes - no catch-all for frontend since frontend is deployed separately
+// All other routes return 404 for API endpoints
+app.use('*', (req, res) => {
+  res.status(404).json({ 
+    error: 'API endpoint not found',
+    availableEndpoints: [
+      'GET /',
+      'GET /api/events',
+      'GET /api/events/:id',
+      'POST /api/events',
+      'PUT /api/events/:id',
+      'DELETE /api/events/:id',
+      'GET /api/health',
+      'GET /api/status',
+      'GET /api/debug/frontend',
+      'GET /api/debug/requests',
+      'GET /api/db-integrity'
+    ],
+    frontend: 'https://catchball-seattle.onrender.com',
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Initialize database and start server
