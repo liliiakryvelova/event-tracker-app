@@ -391,7 +391,7 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
       <div className="card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
           <div>
-            <h1 style={{ margin: 0, marginBottom: '1rem', color: '#2c3e50' }}>{event.title}</h1>
+            <h1 style={{ margin: 0, marginBottom: '1rem', color: '#2c3e50' }}>{String(event?.title || 'Event')}</h1>
             {getStatusBadge(event.status)}
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -535,22 +535,22 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
             <div className="form-group">
               <label>Description:</label>
               <p style={{ marginTop: '0.5rem', lineHeight: 1.6 }}>
-                {event.description || 'No description provided'}
+                {String(event?.description || 'No description provided')}
               </p>
             </div>
 
             <div className="form-group">
               <label>📅 Date & Time:</label>
               <p style={{ marginTop: '0.5rem' }}>
-                <strong>{formatDate(event.date)}</strong>
+                <strong>{formatDate(event?.date || 'TBD')}</strong>
                 <br />
-                🕐 {event.time}
+                🕐 {String(event?.time || 'TBD')}
               </p>
             </div>
 
             <div className="form-group">
               <label>📍 Location:</label>
-              <p style={{ marginTop: '0.5rem' }}>{event.location}</p>
+              <p style={{ marginTop: '0.5rem' }}>{String(event?.location || 'TBD')}</p>
             </div>
 
             <div className="form-group">
@@ -644,10 +644,16 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
                     }
                   </span>
                   <span>🕐 Latest: {formatJoinTime(event.attendees.reduce((latest, attendee) => {
-                    if (!attendee.joinedAt) return latest;
+                    // Handle both string and object formats safely
+                    if (typeof attendee === 'string' || !attendee.joinedAt) return latest;
                     return !latest || new Date(attendee.joinedAt) > new Date(latest) ? attendee.joinedAt : latest;
                   }, null))}</span>
-                  <span>🏆 First: {event.attendees.find(a => a.joinOrder === 1)?.name || event.attendees[0]?.name || 'Unknown'}</span>
+                  <span>🏆 First: {(() => {
+                    const firstAttendee = event.attendees.find(a => typeof a === 'object' && a.joinOrder === 1);
+                    if (firstAttendee) return firstAttendee.name;
+                    const firstAttendeeAny = event.attendees[0];
+                    return typeof firstAttendeeAny === 'string' ? firstAttendeeAny : firstAttendeeAny?.name || 'Unknown';
+                  })()}</span>
                   <span style={{ fontSize: '0.75rem', color: '#999' }}>
                     📡 Last sync: {formatJoinTime(lastSyncTime)}
                   </span>
@@ -711,7 +717,7 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
                             }}>
                               #{attendee.joinOrder || index + 1}
                             </span>
-                            👤 {attendee.name}
+                            👤 {attendee.name || 'Unknown'}
                             {attendee.role === 'admin' && (
                               <span className="admin-badge">
                                 👑 ADMIN
@@ -719,10 +725,10 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
                             )}
                           </div>
                           <div className="attendee-detail">
-                            🏢 <span>{attendee.team}</span>
+                            🏢 <span>{attendee.team || 'No team'}</span>
                           </div>
                           <div className="attendee-detail">
-                            📞 <span>{attendee.phone}</span>
+                            📞 <span>{attendee.phone || 'No phone'}</span>
                           </div>
                           <div className="attendee-detail" style={{ 
                             marginTop: '0.5rem', 
@@ -730,7 +736,7 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
                             color: '#666',
                             fontStyle: 'italic' 
                           }}>
-                            🕐 Joined {formatJoinTime(attendee.joinedAt)}
+                            🕐 Joined {formatJoinTime(attendee.joinedAt || null)}
                           </div>
                         </div>
                         {canEdit() && (
