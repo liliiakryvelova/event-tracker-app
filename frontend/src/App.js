@@ -81,7 +81,11 @@ const AppContent = () => {
   }
 
   return (
-    <div className="App">
+    <div className="App" style={{ 
+      minHeight: '100vh', 
+      display: 'flex', 
+      flexDirection: 'column' 
+    }}>
       <Header onShowLogin={showLogin} />
 
       <nav className="nav">
@@ -119,7 +123,7 @@ const AppContent = () => {
         </div>
       </nav>
 
-      <div className="container">
+      <div className="container" style={{ flex: '1', paddingBottom: '2rem' }}>
         {/* Events List Section */}
         {activeView === 'events' && (
           <EventList 

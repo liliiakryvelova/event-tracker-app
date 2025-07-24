@@ -6,9 +6,9 @@ const Footer = () => {
       backgroundColor: '#2c3e50',
       color: 'white',
       padding: '2rem 0',
-      marginTop: '4rem',
       textAlign: 'center',
-      borderTop: '4px solid #e74c3c'
+      borderTop: '4px solid #e74c3c',
+      marginTop: 'auto'
     }}>
       <div className="container">
         <div style={{
