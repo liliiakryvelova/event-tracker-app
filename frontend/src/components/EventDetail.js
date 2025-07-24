@@ -114,12 +114,20 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
   };
 
   const handleJoinEvent = async (e) => {
+    console.log('🚀 FORM SUBMISSION STARTED!');
     e.preventDefault();
     setJoinLoading(true);
 
     console.log('🎯 Form submitted with guestInfo:', guestInfo);
     console.log('🎯 User object:', user);
     console.log('🎯 isAuthenticated:', isAuthenticated());
+
+    // Check if form fields are empty at the UI level
+    console.log('🔍 Raw form values:', {
+      name: `"${guestInfo.name}"`,
+      team: `"${guestInfo.team}"`,
+      phone: `"${guestInfo.phone}"`
+    });
 
     try {
       let attendeeInfo;
@@ -402,7 +410,7 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
         {showJoinForm && (
           <div className="join-form" style={{ marginBottom: '2rem' }}>
             <h3>🎯 Join Event</h3>
-            <form onSubmit={handleJoinEvent}>
+            <form onSubmit={handleJoinEvent} noValidate>
               <div className="form-row">
                 <div className="form-group">
                   <label htmlFor="guestName">Your Name *</label>
@@ -411,7 +419,6 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
                     id="guestName"
                     value={guestInfo.name}
                     onChange={(e) => setGuestInfo(prev => ({ ...prev, name: e.target.value }))}
-                    required
                     placeholder="Enter your full name"
                   />
                 </div>
@@ -423,7 +430,6 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
                     id="guestPhone"
                     value={guestInfo.phone}
                     onChange={(e) => setGuestInfo(prev => ({ ...prev, phone: e.target.value }))}
-                    required
                     placeholder="Enter your phone number (e.g., +1234567890)"
                   />
                   <small style={{ color: '#666', fontSize: '0.8rem', display: 'block', marginTop: '0.25rem' }}>
@@ -438,7 +444,6 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
                   id="guestTeam"
                   value={guestInfo.team}
                   onChange={(e) => setGuestInfo(prev => ({ ...prev, team: e.target.value }))}
-                  required
                 >
                   <option value="">Select your team</option>
                   {availableTeams.map((team, index) => (
