@@ -8,7 +8,7 @@ A full-stack event tracking application with React frontend, Node.js backend, Po
 
 ### Demo Credentials:
 - **Username:** `admin`
-- **Password:** `admin123`
+- **Password:** `CatchBall2025!Secure#Admin`
 - **Role:** Admin (Can create/edit/delete events)
 
 ### Access Levels:

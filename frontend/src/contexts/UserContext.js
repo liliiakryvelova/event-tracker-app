@@ -32,7 +32,7 @@ export const UserProvider = ({ children }) => {
     const validCredentials = [
       { 
         username: 'admin', 
-        password: 'admin123', 
+        password: 'CatchBall2025!Secure#Admin', 
         role: 'admin', 
         name: 'Administrator',
         phone: '+1234567890',
