@@ -46,14 +46,14 @@ const EventForm = ({ eventId, onSuccess, onCancel }) => {
           console.log('📝 EventForm: Loaded event data:', event);
           
           setFormData({
-            title: event.title || '',
-            description: event.description || '',
-            date: event.date || '',
-            time: event.time || '',
-            location: event.location || '',
+            title: String(event.title || ''),
+            description: String(event.description || ''),
+            date: String(event.date || ''),
+            time: String(event.time || ''),
+            location: String(event.location || ''),
             attendees: event.attendees || [],
-            status: event.status || 'planned',
-            maxAttendees: event.maxAttendees || 20
+            status: String(event.status || 'planned'),
+            maxAttendees: Number(event.maxAttendees) || 20
           });
           console.log('📝 EventForm: Form data set successfully');
         } catch (error) {
@@ -88,19 +88,32 @@ const EventForm = ({ eventId, onSuccess, onCancel }) => {
   };
 
   const handleAddAttendee = () => {
-    if (attendeeInput.trim() && !formData.attendees.includes(attendeeInput.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        attendees: [...prev.attendees, attendeeInput.trim()]
-      }));
-      setAttendeeInput('');
+    if (attendeeInput.trim()) {
+      // Check if attendee already exists (handle both string and object formats)
+      const existingAttendee = formData.attendees.find(attendee => {
+        const attendeeName = typeof attendee === 'string' ? attendee : attendee?.name;
+        return attendeeName === attendeeInput.trim();
+      });
+      
+      if (!existingAttendee) {
+        setFormData(prev => ({
+          ...prev,
+          attendees: [...prev.attendees, attendeeInput.trim()]
+        }));
+        setAttendeeInput('');
+      }
     }
   };
 
   const handleRemoveAttendee = (attendeeToRemove) => {
     setFormData(prev => ({
       ...prev,
-      attendees: prev.attendees.filter(attendee => attendee !== attendeeToRemove)
+      attendees: prev.attendees.filter(attendee => {
+        // Handle both string and object attendees
+        const attendeeName = typeof attendee === 'string' ? attendee : attendee?.name;
+        const toRemoveName = typeof attendeeToRemove === 'string' ? attendeeToRemove : attendeeToRemove?.name;
+        return attendeeName !== toRemoveName;
+      })
     }));
   };
 
@@ -352,7 +365,7 @@ const EventForm = ({ eventId, onSuccess, onCancel }) => {
                     fontSize: '0.9rem'
                   }}
                 >
-                  {attendee}
+                  {typeof attendee === 'string' ? attendee : attendee?.name || 'Unknown'}
                   <button
                     type="button"
                     onClick={() => handleRemoveAttendee(attendee)}
