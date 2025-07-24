@@ -40,7 +40,10 @@ const Login = () => {
   return (
     <div className="container" style={{ maxWidth: '400px', marginTop: '2rem' }}>
       <div className="card">
-        <h2>🔐 Login to Event Tracker</h2>
+        <h2>🔐 Admin Login</h2>
+        <p style={{ color: '#666', marginBottom: '1rem', fontSize: '0.9rem' }}>
+          Administrator access only. Contact the event coordinator if you need admin privileges.
+        </p>
         
         {error && <div className="error">{error}</div>}
 
@@ -54,7 +57,7 @@ const Login = () => {
               value={formData.username}
               onChange={handleChange}
               required
-              placeholder="Enter username"
+              placeholder="Admin username"
               autoComplete="username"
             />
           </div>
@@ -68,7 +71,7 @@ const Login = () => {
               value={formData.password}
               onChange={handleChange}
               required
-              placeholder="Enter password"
+              placeholder="Admin password"
               autoComplete="current-password"
             />
           </div>
@@ -79,7 +82,7 @@ const Login = () => {
             disabled={loading}
             style={{ width: '100%' }}
           >
-            {loading ? 'Logging in...' : '🚀 Login'}
+            {loading ? 'Logging in...' : '� Admin Login'}
           </button>
         </form>
       </div>

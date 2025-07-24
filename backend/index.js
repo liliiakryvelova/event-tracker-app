@@ -36,9 +36,16 @@ app.use(cors({
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Since frontend is deployed separately on Render, we don't serve static files from backend
-// The frontend is available at: https://catchball-seattle.onrender.com
-console.log('Backend API server - Frontend deployed separately at: https://catchball-seattle.onrender.com');
+// Serve static files from frontend build (for monolithic deployment)
+const frontendPath = path.join(__dirname, '../frontend/build');
+console.log('Frontend build path:', frontendPath);
+app.use(express.static(frontendPath));
+
+// Add explicit static file serving with proper headers
+app.use(express.static(frontendPath, {
+  maxAge: '1d',
+  etag: false
+}));
 
 // Validation function for event data
 const validateEventData = (eventData) => {
@@ -267,27 +274,29 @@ app.get('/api/db-integrity', async (req, res) => {
   }
 });
 
-// API-only routes - no catch-all for frontend since frontend is deployed separately
-// All other routes return 404 for API endpoints
-app.use('*', (req, res) => {
-  res.status(404).json({ 
-    error: 'API endpoint not found',
-    availableEndpoints: [
-      'GET /',
-      'GET /api/events',
-      'GET /api/events/:id',
-      'POST /api/events',
-      'PUT /api/events/:id',
-      'DELETE /api/events/:id',
-      'GET /api/health',
-      'GET /api/status',
-      'GET /api/debug/frontend',
-      'GET /api/debug/requests',
-      'GET /api/db-integrity'
-    ],
-    frontend: 'https://catchball-seattle.onrender.com',
-    timestamp: new Date().toISOString()
-  });
+// API-only routes - serve React app for non-API routes (monolithic deployment)
+// Catch-all handler: send back React's index.html file for any non-API routes
+app.get('*', (req, res) => {
+  // Don't handle API routes here
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ error: 'API endpoint not found' });
+  }
+  
+  // For React Router, serve index.html for all frontend routes
+  const indexPath = path.join(frontendPath, 'index.html');
+  console.log(`Serving React app for route: ${req.path}`);
+  
+  // Check if index.html exists
+  const fs = require('fs');
+  if (fs.existsSync(indexPath)) {
+    console.log(`✅ Serving index.html for route: ${req.path}`);
+    // Always serve index.html and let React Router handle the routing
+    res.sendFile(indexPath);
+  } else {
+    console.error(`❌ index.html not found at: ${indexPath}, redirecting to home`);
+    // If frontend build is missing, redirect to home page instead of showing error
+    res.redirect(301, '/');
+  }
 });
 
 // Initialize database and start server

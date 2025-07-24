@@ -28,30 +28,24 @@ export const UserProvider = ({ children }) => {
   }, []);
 
   const login = (username, password) => {
-    // Simple demo authentication - in production, this should be handled by a secure backend
-    const validCredentials = [
-      { 
-        username: 'admin', 
-        password: 'CatchBall2025!Secure#Admin', 
-        role: 'admin', 
-        name: 'Administrator',
-        phone: '+1234567890',
-        team: 'Management'
-      }
-    ];
+    // Single admin authentication - only one admin account allowed
+    const adminCredentials = {
+      username: 'admin', 
+      password: 'CatchBall2025!Secure#Admin', 
+      role: 'admin', 
+      name: 'Administrator',
+      phone: '+1234567890',
+      team: 'Catchball Seattle Management'
+    };
 
-    const foundUser = validCredentials.find(
-      cred => cred.username === username && cred.password === password
-    );
-
-    if (foundUser) {
+    if (username === adminCredentials.username && password === adminCredentials.password) {
       const userData = {
         id: Date.now(),
-        username: foundUser.username,
-        role: foundUser.role,
-        name: foundUser.name,
-        phone: foundUser.phone,
-        team: foundUser.team,
+        username: adminCredentials.username,
+        role: adminCredentials.role,
+        name: adminCredentials.name,
+        phone: adminCredentials.phone,
+        team: adminCredentials.team,
         loginTime: new Date().toISOString()
       };
       
@@ -60,7 +54,7 @@ export const UserProvider = ({ children }) => {
       return { success: true, user: userData };
     }
 
-    return { success: false, message: 'Invalid username or password' };
+    return { success: false, message: 'Invalid admin credentials' };
   };
 
   const logout = () => {
