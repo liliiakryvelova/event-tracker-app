@@ -40,6 +40,27 @@ const validateEventData = (eventData) => {
 
 // Routes
 
+// Root route - API information
+app.get('/', (req, res) => {
+  res.json({
+    name: 'Event Tracker API',
+    version: '1.0.0',
+    status: 'Running',
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      'GET /api/events': 'Get all events',
+      'GET /api/events/:id': 'Get single event by ID',
+      'POST /api/events': 'Create new event',
+      'PUT /api/events/:id': 'Update event',
+      'DELETE /api/events/:id': 'Delete event',
+      'GET /api/health': 'Health check',
+      'GET /api/status': 'Database status'
+    },
+    frontend: 'https://event-tracker-app-frontend.onrender.com',
+    documentation: 'Visit the endpoints above to interact with the API'
+  });
+});
+
 // Get all events
 app.get('/api/events', async (req, res) => {
   try {
