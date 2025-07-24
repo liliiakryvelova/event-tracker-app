@@ -9,14 +9,7 @@ const EventForm = ({ onSuccess }) => {
   const { canCreate } = useUser();
   const isEditing = !!id;
 
-  // Redirect if user cannot create events
-  useEffect(() => {
-    if (!canCreate()) {
-      navigate('/login');
-      return;
-    }
-  }, [canCreate, navigate]);
-
+  // All useState hooks must come before any conditional returns
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -34,10 +27,13 @@ const EventForm = ({ onSuccess }) => {
   const [success, setSuccess] = useState(null);
   const [eventCount, setEventCount] = useState(0);
 
-  // Show loading while checking authentication
-  if (!canCreate()) {
-    return <div className="loading">Checking permissions...</div>;
-  }
+  // All useEffect hooks must come before any conditional returns
+  // Redirect if user cannot create events
+  useEffect(() => {
+    if (!canCreate()) {
+      navigate('/login');
+    }
+  }, [canCreate, navigate]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -71,6 +67,11 @@ const EventForm = ({ onSuccess }) => {
     };
     loadData();
   }, [id, isEditing]);
+
+  // Show loading while checking authentication (after all hooks)
+  if (!canCreate()) {
+    return <div className="loading">Checking permissions...</div>;
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target;
