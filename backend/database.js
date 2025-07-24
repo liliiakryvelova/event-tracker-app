@@ -207,10 +207,46 @@ const dbQueries = {
     return await dbQueries.getEventById(id);
   },
 
-  // Delete event
+  // Delete event and all related attendees (with CASCADE)
   deleteEvent: async (id) => {
-    const result = await pool.query('DELETE FROM events WHERE id = $1 RETURNING *', [id]);
-    return result.rows.length > 0;
+    const client = await pool.connect();
+    
+    try {
+      await client.query('BEGIN');
+      
+      // First, check if event exists and get attendee count
+      const eventCheck = await client.query('SELECT title FROM events WHERE id = $1', [id]);
+      if (eventCheck.rows.length === 0) {
+        await client.query('ROLLBACK');
+        console.log(`Event ${id} not found for deletion`);
+        return false;
+      }
+      
+      const attendeeCount = await client.query('SELECT COUNT(*) FROM attendees WHERE event_id = $1', [id]);
+      const eventTitle = eventCheck.rows[0].title;
+      
+      console.log(`Deleting event "${eventTitle}" (ID: ${id}) with ${attendeeCount.rows[0].count} attendees`);
+      
+      // Delete the event (attendees will be cascaded automatically due to ON DELETE CASCADE)
+      const eventResult = await client.query('DELETE FROM events WHERE id = $1 RETURNING *', [id]);
+      
+      // Verify all related data was deleted
+      const remainingAttendees = await client.query('SELECT COUNT(*) FROM attendees WHERE event_id = $1', [id]);
+      
+      await client.query('COMMIT');
+      
+      console.log(`✅ Event "${eventTitle}" deleted successfully`);
+      console.log(`✅ ${attendeeCount.rows[0].count} attendees automatically deleted via CASCADE`);
+      console.log(`✅ Remaining orphaned attendees: ${remainingAttendees.rows[0].count} (should be 0)`);
+      
+      return eventResult.rows.length > 0;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      console.error('❌ Error deleting event and attendees:', error);
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 };
 

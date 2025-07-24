@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
-const { initializeDatabase, dbQueries } = require('./database');
+const { initializeDatabase, dbQueries, pool } = require('./database');
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -176,6 +176,51 @@ app.get('/api/status', async (req, res) => {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
+    res.status(500).json({ 
+      status: 'ERROR', 
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Database integrity check endpoint
+app.get('/api/db-integrity', async (req, res) => {
+  try {
+    // Check for orphaned attendees (attendees without valid event_id)
+    const orphanedAttendeesResult = await pool.query(`
+      SELECT a.id, a.name, a.event_id 
+      FROM attendees a 
+      LEFT JOIN events e ON a.event_id = e.id 
+      WHERE e.id IS NULL
+    `);
+    
+    // Get total counts
+    const eventsCount = await pool.query('SELECT COUNT(*) FROM events');
+    const attendeesCount = await pool.query('SELECT COUNT(*) FROM attendees');
+    
+    // Get events with their attendee counts
+    const eventsWithCounts = await pool.query(`
+      SELECT e.id, e.title, COUNT(a.id) as attendee_count
+      FROM events e
+      LEFT JOIN attendees a ON e.id = a.event_id
+      GROUP BY e.id, e.title
+      ORDER BY e.id
+    `);
+    
+    res.json({
+      status: 'OK',
+      integrity: {
+        totalEvents: parseInt(eventsCount.rows[0].count),
+        totalAttendees: parseInt(attendeesCount.rows[0].count),
+        orphanedAttendees: orphanedAttendeesResult.rows.length,
+        orphanedDetails: orphanedAttendeesResult.rows,
+        eventsWithCounts: eventsWithCounts.rows
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error checking database integrity:', error);
     res.status(500).json({ 
       status: 'ERROR', 
       error: error.message,

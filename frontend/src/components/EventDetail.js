@@ -84,13 +84,19 @@ const EventDetail = ({ onRefresh }) => {
   }, [loadEvent]);
 
   const handleDelete = async () => {
-    if (window.confirm(`Are you sure you want to delete "${event.title}"?`)) {
+    const attendeeCount = event.attendees?.length || 0;
+    const confirmMessage = attendeeCount > 0 
+      ? `Are you sure you want to delete "${event.title}"?\n\nThis will permanently delete:\n• The event\n• All ${attendeeCount} registered attendees\n• All related data from the database\n\nThis action cannot be undone.`
+      : `Are you sure you want to delete "${event.title}"?\n\nThis action cannot be undone.`;
+      
+    if (window.confirm(confirmMessage)) {
       try {
         await deleteEvent(id);
         onRefresh();
         navigate('/');
       } catch (error) {
-        alert('Failed to delete event');
+        alert('Failed to delete event. Please try again.');
+        console.error('Delete error:', error);
       }
     }
   };
