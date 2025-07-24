@@ -11,7 +11,17 @@ const pool = new Pool({
 // Initialize database tables
 const initializeDatabase = async () => {
   try {
+    console.log('🔄 Initializing database connection...');
+    console.log('🔗 Database URL:', process.env.DATABASE_URL ? 'SET' : 'NOT SET');
+    console.log('🌍 Environment:', process.env.NODE_ENV);
+    
+    // Test database connection first
+    const client = await pool.connect();
+    console.log('✅ Database connection successful');
+    client.release();
+    
     // Create users table for admin authentication
+    console.log('📝 Creating users table...');
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
@@ -25,6 +35,7 @@ const initializeDatabase = async () => {
       )
     `);
 
+    console.log('📝 Creating events table...');
     await pool.query(`
       CREATE TABLE IF NOT EXISTS events (
         id SERIAL PRIMARY KEY,
@@ -40,6 +51,7 @@ const initializeDatabase = async () => {
       )
     `);
 
+    console.log('📝 Creating attendees table...');
     await pool.query(`
       CREATE TABLE IF NOT EXISTS attendees (
         id SERIAL PRIMARY KEY,
@@ -54,11 +66,17 @@ const initializeDatabase = async () => {
     `);
 
     // Create default admin user if none exists
+    console.log('👤 Checking/creating default admin user...');
     await createDefaultAdminUser();
 
-    console.log('Database tables initialized successfully');
+    console.log('✅ Database tables initialized successfully');
   } catch (error) {
-    console.error('Error initializing database:', error);
+    console.error('❌ Error initializing database:', error);
+    console.error('❌ Error details:', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail
+    });
     throw error;
   }
 };
@@ -66,10 +84,12 @@ const initializeDatabase = async () => {
 // User management functions
 const createDefaultAdminUser = async () => {
   try {
+    console.log('🔍 Checking for existing admin users...');
     // Check if any admin users exist
     const existingAdmin = await pool.query('SELECT id FROM users WHERE role = $1 LIMIT 1', ['admin']);
     
     if (existingAdmin.rows.length === 0) {
+      console.log('👤 No admin users found, creating default admin...');
       // Create default admin user
       const saltRounds = 12;
       const hashedPassword = await bcrypt.hash('CatchBall2025!Secure#Admin', saltRounds);
@@ -79,27 +99,43 @@ const createDefaultAdminUser = async () => {
         VALUES ($1, $2, $3, $4, $5)
       `, ['admin', hashedPassword, 'admin', 'System Administrator', 'Catchball Seattle Management']);
       
-      console.log('Default admin user created successfully');
+      console.log('✅ Default admin user created successfully');
+      console.log('📋 Username: admin');
+      console.log('📋 Password: CatchBall2025!Secure#Admin');
+    } else {
+      console.log('✅ Admin user already exists, skipping creation');
     }
   } catch (error) {
-    console.error('Error creating default admin user:', error);
+    console.error('❌ Error creating default admin user:', error);
+    console.error('❌ Error details:', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail
+    });
   }
 };
 
 const authenticateUser = async (username, password) => {
   try {
+    console.log(`🔐 Authentication attempt for user: ${username}`);
     const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
     
     if (result.rows.length === 0) {
+      console.log(`❌ User not found: ${username}`);
       return { success: false, message: 'Invalid username or password' };
     }
     
     const user = result.rows[0];
+    console.log(`🔍 User found: ${user.username}, role: ${user.role}`);
+    
     const isValidPassword = await bcrypt.compare(password, user.password_hash);
     
     if (!isValidPassword) {
+      console.log(`❌ Invalid password for user: ${username}`);
       return { success: false, message: 'Invalid username or password' };
     }
+    
+    console.log(`✅ Authentication successful for user: ${username}`);
     
     // Return user info without password hash
     const { password_hash, ...userInfo } = user;
@@ -114,7 +150,7 @@ const authenticateUser = async (username, password) => {
       }
     };
   } catch (error) {
-    console.error('Error authenticating user:', error);
+    console.error('❌ Error authenticating user:', error);
     return { success: false, message: 'Authentication error' };
   }
 };
