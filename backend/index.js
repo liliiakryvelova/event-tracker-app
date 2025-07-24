@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
-const { initializeDatabase, dbQueries, pool } = require('./database');
+const { initializeDatabase, dbQueries, pool, authenticateUser, changePassword } = require('./database');
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -79,6 +79,8 @@ app.get('/api/', (req, res) => {
       'POST /api/events': 'Create new event',
       'PUT /api/events/:id': 'Update event',
       'DELETE /api/events/:id': 'Delete event',
+      'POST /api/auth/login': 'Admin login',
+      'POST /api/auth/change-password': 'Change admin password',
       'GET /api/health': 'Health check',
       'GET /api/status': 'Database status'
     },
@@ -87,6 +89,70 @@ app.get('/api/', (req, res) => {
     documentation: 'Visit the endpoints above to interact with the API',
     note: 'SPA deployment - frontend and backend are separate services'
   });
+});
+
+// Authentication Routes
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    
+    if (!username || !password) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Username and password are required' 
+      });
+    }
+    
+    const result = await authenticateUser(username, password);
+    
+    if (result.success) {
+      res.json({
+        success: true,
+        message: 'Login successful',
+        user: result.user
+      });
+    } else {
+      res.status(401).json({
+        success: false,
+        message: result.message
+      });
+    }
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during login'
+    });
+  }
+});
+
+app.post('/api/auth/change-password', async (req, res) => {
+  try {
+    const { userId, newPassword } = req.body;
+    
+    if (!userId || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID and new password are required'
+      });
+    }
+    
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 8 characters long'
+      });
+    }
+    
+    const result = await changePassword(userId, newPassword);
+    res.json(result);
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during password change'
+    });
+  }
 });
 
 // Get all events

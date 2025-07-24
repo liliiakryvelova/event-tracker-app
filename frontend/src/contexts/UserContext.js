@@ -10,11 +10,16 @@ export const useUser = () => {
   return context;
 };
 
+// API configuration
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://event-tracker-backend.onrender.com/api'
+  : 'http://localhost:8000/api';
+
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Simple authentication - in a real app, this would connect to a proper auth service
+  // Load user from localStorage on initialization
   useEffect(() => {
     const storedUser = localStorage.getItem('eventTrackerUser');
     if (storedUser) {
@@ -27,39 +32,77 @@ export const UserProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = (username, password) => {
-    // Single admin authentication - only one admin account allowed
-    const adminCredentials = {
-      username: 'admin', 
-      password: 'CatchBall2025!Secure#Admin', 
-      role: 'admin', 
-      name: 'Administrator',
-      phone: '+1234567890',
-      team: 'Catchball Seattle Management'
-    };
+  const login = async (username, password) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
 
-    if (username === adminCredentials.username && password === adminCredentials.password) {
-      const userData = {
-        id: Date.now(),
-        username: adminCredentials.username,
-        role: adminCredentials.role,
-        name: adminCredentials.name,
-        phone: adminCredentials.phone,
-        team: adminCredentials.team,
-        loginTime: new Date().toISOString()
+      const result = await response.json();
+
+      if (result.success) {
+        const userData = {
+          ...result.user,
+          loginTime: new Date().toISOString()
+        };
+        
+        setUser(userData);
+        localStorage.setItem('eventTrackerUser', JSON.stringify(userData));
+        
+        return { 
+          success: true, 
+          message: 'Login successful' 
+        };
+      } else {
+        return { 
+          success: false, 
+          message: result.message || 'Login failed' 
+        };
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      return { 
+        success: false, 
+        message: 'Network error. Please try again.' 
       };
-      
-      setUser(userData);
-      localStorage.setItem('eventTrackerUser', JSON.stringify(userData));
-      return { success: true, user: userData };
     }
-
-    return { success: false, message: 'Invalid admin credentials' };
   };
 
   const logout = () => {
     setUser(null);
     localStorage.removeItem('eventTrackerUser');
+  };
+
+  const changePassword = async (newPassword) => {
+    if (!user) {
+      return { success: false, message: 'Not authenticated' };
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/change-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          userId: user.id, 
+          newPassword 
+        }),
+      });
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('Change password error:', error);
+      return { 
+        success: false, 
+        message: 'Network error. Please try again.' 
+      };
+    }
   };
 
   const isAdmin = () => {
@@ -98,6 +141,7 @@ export const UserProvider = ({ children }) => {
     user,
     login,
     logout,
+    changePassword,
     isAdmin,
     isAuthenticated,
     isGuest,

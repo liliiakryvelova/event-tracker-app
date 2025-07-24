@@ -1,5 +1,6 @@
 require('dotenv').config();
 const { Pool } = require('pg');
+const bcrypt = require('bcrypt');
 
 // Database configuration
 const pool = new Pool({
@@ -10,6 +11,20 @@ const pool = new Pool({
 // Initialize database tables
 const initializeDatabase = async () => {
   try {
+    // Create users table for admin authentication
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        username VARCHAR(50) UNIQUE NOT NULL,
+        password_hash VARCHAR(255) NOT NULL,
+        role VARCHAR(20) DEFAULT 'admin',
+        full_name VARCHAR(100),
+        team VARCHAR(100),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
     await pool.query(`
       CREATE TABLE IF NOT EXISTS events (
         id SERIAL PRIMARY KEY,
@@ -38,10 +53,86 @@ const initializeDatabase = async () => {
       )
     `);
 
+    // Create default admin user if none exists
+    await createDefaultAdminUser();
+
     console.log('Database tables initialized successfully');
   } catch (error) {
     console.error('Error initializing database:', error);
     throw error;
+  }
+};
+
+// User management functions
+const createDefaultAdminUser = async () => {
+  try {
+    // Check if any admin users exist
+    const existingAdmin = await pool.query('SELECT id FROM users WHERE role = $1 LIMIT 1', ['admin']);
+    
+    if (existingAdmin.rows.length === 0) {
+      // Create default admin user
+      const saltRounds = 12;
+      const hashedPassword = await bcrypt.hash('CatchBall2025!Secure#Admin', saltRounds);
+      
+      await pool.query(`
+        INSERT INTO users (username, password_hash, role, full_name, team)
+        VALUES ($1, $2, $3, $4, $5)
+      `, ['admin', hashedPassword, 'admin', 'System Administrator', 'Catchball Seattle Management']);
+      
+      console.log('Default admin user created successfully');
+    }
+  } catch (error) {
+    console.error('Error creating default admin user:', error);
+  }
+};
+
+const authenticateUser = async (username, password) => {
+  try {
+    const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+    
+    if (result.rows.length === 0) {
+      return { success: false, message: 'Invalid username or password' };
+    }
+    
+    const user = result.rows[0];
+    const isValidPassword = await bcrypt.compare(password, user.password_hash);
+    
+    if (!isValidPassword) {
+      return { success: false, message: 'Invalid username or password' };
+    }
+    
+    // Return user info without password hash
+    const { password_hash, ...userInfo } = user;
+    return { 
+      success: true, 
+      user: {
+        id: userInfo.id,
+        username: userInfo.username,
+        role: userInfo.role,
+        fullName: userInfo.full_name,
+        team: userInfo.team
+      }
+    };
+  } catch (error) {
+    console.error('Error authenticating user:', error);
+    return { success: false, message: 'Authentication error' };
+  }
+};
+
+const changePassword = async (userId, newPassword) => {
+  try {
+    const saltRounds = 12;
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+    
+    await pool.query(
+      'UPDATE users SET password_hash = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+      [hashedPassword, userId]
+    );
+    
+    return { success: true, message: 'Password updated successfully' };
+  } catch (error) {
+    console.error('Error changing password:', error);
+    return { success: false, message: 'Error updating password' };
   }
 };
 
@@ -253,5 +344,7 @@ const dbQueries = {
 module.exports = {
   pool,
   initializeDatabase,
-  dbQueries
+  dbQueries,
+  authenticateUser,
+  changePassword
 };

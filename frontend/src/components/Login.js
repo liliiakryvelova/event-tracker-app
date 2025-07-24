@@ -23,7 +23,7 @@ const Login = ({ onSuccess }) => {
     setLoading(true);
     setError('');
 
-    const result = login(formData.username, formData.password);
+    const result = await login(formData.username, formData.password);
     
     if (result.success) {
       // Call success callback to return to events page
