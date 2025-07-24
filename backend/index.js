@@ -184,9 +184,14 @@ app.get('/api/debug/frontend', (req, res) => {
     const exists = fs.existsSync(frontendPath);
     const indexExists = fs.existsSync(indexPath);
     let files = [];
+    let indexContent = null;
     
     if (exists) {
       files = fs.readdirSync(frontendPath);
+    }
+    
+    if (indexExists) {
+      indexContent = fs.readFileSync(indexPath, 'utf8').substring(0, 500) + '...';
     }
     
     res.json({
@@ -195,15 +200,30 @@ app.get('/api/debug/frontend', (req, res) => {
       indexHtmlExists: indexExists,
       indexPath: indexPath,
       files: files.slice(0, 20), // Limit to first 20 files
+      indexPreview: indexContent,
+      currentWorkingDir: process.cwd(),
+      nodeEnv: process.env.NODE_ENV,
       timestamp: new Date().toISOString()
     });
   } catch (error) {
     res.status(500).json({
       error: error.message,
       frontendPath: frontendPath,
+      currentWorkingDir: process.cwd(),
       timestamp: new Date().toISOString()
     });
   }
+});
+
+// Debug route to check what routes are being hit
+app.get('/api/debug/requests', (req, res) => {
+  res.json({
+    message: 'Debug endpoint working',
+    headers: req.headers,
+    path: req.path,
+    method: req.method,
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Database status endpoint
@@ -280,30 +300,46 @@ app.get('*', (req, res) => {
     return res.status(404).json({ error: 'API endpoint not found' });
   }
   
-  // Redirect specific routes to home page on reload
-  const redirectRoutes = ['/login', '/create', '/edit'];
-  const shouldRedirect = redirectRoutes.some(route => req.path.startsWith(route));
+  // Temporarily disable redirect to debug 404 issues
+  // const redirectRoutes = ['/login', '/create', '/edit'];
+  // const shouldRedirect = redirectRoutes.some(route => req.path.startsWith(route));
   
-  if (shouldRedirect) {
-    console.log(`Redirecting ${req.path} to home page`);
-    return res.redirect(301, '/');
-  }
+  // if (shouldRedirect) {
+  //   console.log(`Redirecting ${req.path} to home page`);
+  //   return res.redirect(301, '/');
+  // }
   
   const indexPath = path.join(frontendPath, 'index.html');
   console.log(`Serving React app for route: ${req.path}`);
   console.log(`Index.html path: ${indexPath}`);
+  console.log(`Current working directory: ${process.cwd()}`);
   
   // Check if index.html exists
   const fs = require('fs');
   if (fs.existsSync(indexPath)) {
+    console.log(`✅ Found index.html, serving file`);
     res.sendFile(indexPath);
   } else {
-    console.error(`index.html not found at: ${indexPath}`);
+    console.error(`❌ index.html not found at: ${indexPath}`);
+    
+    // Try to list what's actually in the directory
+    const parentDir = path.dirname(indexPath);
+    console.log(`Checking parent directory: ${parentDir}`);
+    
+    if (fs.existsSync(parentDir)) {
+      const parentFiles = fs.readdirSync(parentDir);
+      console.log(`Files in parent directory:`, parentFiles);
+    }
+    
     res.status(404).send(`
       <h1>Frontend Build Not Found</h1>
       <p>The React app build files are not available.</p>
-      <p>Expected path: ${indexPath}</p>
+      <p><strong>Expected path:</strong> ${indexPath}</p>
+      <p><strong>Current working dir:</strong> ${process.cwd()}</p>
+      <p><strong>Frontend path:</strong> ${frontendPath}</p>
       <p>Please run 'npm run build' in the frontend directory.</p>
+      <hr>
+      <p><a href="/api/debug/frontend">Debug: Check frontend build status</a></p>
     `);
   }
 });
