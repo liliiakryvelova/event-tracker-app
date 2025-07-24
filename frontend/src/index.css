@@ -241,7 +241,6 @@ code {
 .btn:active {
   transform: translateY(-1px);
 }
-}
 
 /* Sporty Button Variants */
 .btn-danger {
