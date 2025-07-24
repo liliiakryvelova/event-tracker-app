@@ -44,37 +44,50 @@ const AppContent = () => {
 
   // Navigation handlers
   const showEvents = () => {
+    console.log('🏠 Navigating to events list...');
+    console.log('🏠 Previous activeView:', activeView);
     setActiveView('events');
     setEditingEventId(null);
     setViewingEventId(null);
+    console.log('🏠 New activeView: events');
   };
 
   const showLogin = () => {
+    console.log('🔐 Navigating to login...');
     setActiveView('login');
   };
 
   const showCreateEvent = () => {
+    console.log('➕ Navigating to create event...');
     setActiveView('create');
   };
 
   const showEditEvent = (eventId) => {
+    console.log('✏️ Navigating to edit event:', eventId);
     setEditingEventId(eventId);
     setActiveView('edit');
   };
 
   const showEventDetail = (eventId) => {
+    console.log('👁️ Navigating to event detail:', eventId);
     setViewingEventId(eventId);
     setActiveView('detail');
   };
 
   const handleFormSuccess = () => {
+    console.log('✅ Form success - returning to events...');
     refreshEvents();
     showEvents(); // Return to events list after successful form submission
   };
 
   const handleLoginSuccess = () => {
+    console.log('✅ Login success - returning to events...');
     showEvents(); // Return to events list after successful login
   };
+
+  console.log('🎯 Current activeView:', activeView);
+  console.log('🎯 Current editingEventId:', editingEventId);
+  console.log('🎯 Current viewingEventId:', viewingEventId);
 
   if (loading) {
     return <div className="loading">Loading...</div>;
