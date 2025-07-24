@@ -9,7 +9,7 @@ import { UserProvider, useUser } from './contexts/UserContext';
 import { getEvents } from './services/eventService';
 
 const AppContent = () => {
-  const { isAuthenticated, canCreate, loading } = useUser();
+  const { canCreate, loading } = useUser();
   const [events, setEvents] = useState([]);
   const [eventsLoading, setEventsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -55,11 +55,6 @@ const AppContent = () => {
               {canCreate() && (
                 <li>
                   <Link to="/create"><span>⚡ Create Event</span></Link>
-                </li>
-              )}
-              {!isAuthenticated() && (
-                <li>
-                  <Link to="/login"><span>� Admin Login</span></Link>
                 </li>
               )}
             </ul>
