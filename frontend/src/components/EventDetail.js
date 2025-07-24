@@ -117,16 +117,20 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
     e.preventDefault();
     setJoinLoading(true);
 
+    console.log('🎯 Form submitted with guestInfo:', guestInfo);
+    console.log('🎯 User object:', user);
+    console.log('🎯 isAuthenticated:', isAuthenticated());
+
     try {
       let attendeeInfo;
       
       if (isAuthenticated()) {
-        // For authenticated users, we need to ask for additional info
+        // For authenticated users, use form data (which is pre-populated for admin)
         attendeeInfo = {
-          name: user.name,
+          name: guestInfo.name.trim() || user.username || user.name || 'Admin User',
           team: guestInfo.team,
-          phone: guestInfo.phone,
-          role: user.role,
+          phone: guestInfo.phone.trim(),
+          role: user.role || 'admin',
           joinedAt: new Date().toISOString(),
           joinOrder: (event.attendees?.length || 0) + 1
         };
@@ -142,8 +146,20 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
         };
       }
       
+      console.log('🎯 Attempting to join with info:', attendeeInfo);
+      
       if (!attendeeInfo.name || !attendeeInfo.team || !attendeeInfo.phone) {
-        alert('Please fill in all required fields');
+        const missingFields = [];
+        if (!attendeeInfo.name) missingFields.push('Name');
+        if (!attendeeInfo.team) missingFields.push('Team');
+        if (!attendeeInfo.phone) missingFields.push('Phone');
+        
+        alert(`Please fill in all required fields. Missing: ${missingFields.join(', ')}`);
+        console.log('❌ Missing fields:', {
+          name: !attendeeInfo.name ? 'MISSING' : attendeeInfo.name,
+          team: !attendeeInfo.team ? 'MISSING' : attendeeInfo.team, 
+          phone: !attendeeInfo.phone ? 'MISSING' : attendeeInfo.phone
+        });
         setJoinLoading(false);
         return;
       }
