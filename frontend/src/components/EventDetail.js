@@ -257,6 +257,49 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
     }
   };
 
+  const handleRemoveAttendee = async (attendeeToRemove) => {
+    if (!canEdit()) {
+      alert('You do not have permission to remove attendees.');
+      return;
+    }
+
+    const attendeeName = typeof attendeeToRemove === 'string' ? attendeeToRemove : attendeeToRemove.name;
+    
+    if (window.confirm(`Are you sure you want to remove "${attendeeName}" from "${event.title}"?`)) {
+      try {
+        let updatedEvent;
+        
+        if (typeof attendeeToRemove === 'string') {
+          // Legacy format - remove by name
+          updatedEvent = {
+            ...event,
+            attendees: event.attendees.filter(attendee => attendee !== attendeeToRemove)
+          };
+        } else {
+          // New format - remove by phone or name
+          updatedEvent = {
+            ...event,
+            attendees: event.attendees.filter(attendee => {
+              if (typeof attendee === 'string') {
+                return attendee !== attendeeToRemove.name;
+              }
+              return attendee.phone !== attendeeToRemove.phone;
+            })
+          };
+        }
+
+        await updateEvent(eventId, updatedEvent);
+        setEvent(updatedEvent);
+        onRefresh();
+        
+        alert(`"${attendeeName}" has been removed from the event.`);
+      } catch (error) {
+        console.error('Remove attendee error:', error);
+        alert('Failed to remove attendee. Please try again.');
+      }
+    }
+  };
+
   const isUserAttending = () => {
     if (!event || !isAuthenticated()) return false;
     
@@ -606,61 +649,94 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
                   <li key={index} className="attendee-card">
                     {typeof attendee === 'string' ? (
                       // Legacy format (string only)
-                      <div>
-                        <div className="attendee-name">
-                          <span style={{ 
-                            background: '#e3f2fd', 
-                            color: '#1976d2', 
-                            padding: '0.2rem 0.5rem', 
-                            borderRadius: '12px', 
-                            fontSize: '0.8rem', 
-                            fontWeight: 'bold', 
-                            marginRight: '0.5rem' 
-                          }}>
-                            #{index + 1}
-                          </span>
-                          👤 {attendee}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ flex: 1 }}>
+                          <div className="attendee-name">
+                            <span style={{ 
+                              background: '#e3f2fd', 
+                              color: '#1976d2', 
+                              padding: '0.2rem 0.5rem', 
+                              borderRadius: '12px', 
+                              fontSize: '0.8rem', 
+                              fontWeight: 'bold', 
+                              marginRight: '0.5rem' 
+                            }}>
+                              #{index + 1}
+                            </span>
+                            👤 {attendee}
+                          </div>
+                          <div className="attendee-detail" style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: '#999' }}>
+                            🕐 Legacy registration (no timestamp)
+                          </div>
                         </div>
-                        <div className="attendee-detail" style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: '#999' }}>
-                          🕐 Legacy registration (no timestamp)
-                        </div>
+                        {canEdit() && (
+                          <button
+                            onClick={() => handleRemoveAttendee(attendee)}
+                            className="btn btn-danger"
+                            style={{ 
+                              fontSize: '0.8rem', 
+                              padding: '0.3rem 0.6rem',
+                              marginLeft: '1rem'
+                            }}
+                            title={`Remove ${attendee} from event`}
+                          >
+                            🗑️ Remove
+                          </button>
+                        )}
                       </div>
                     ) : (
                       // New format (object with details)
-                      <div>
-                        <div className="attendee-name">
-                          <span style={{ 
-                            background: '#e8f5e8', 
-                            color: '#2e7d32', 
-                            padding: '0.2rem 0.5rem', 
-                            borderRadius: '12px', 
-                            fontSize: '0.8rem', 
-                            fontWeight: 'bold', 
-                            marginRight: '0.5rem' 
-                          }}>
-                            #{attendee.joinOrder || index + 1}
-                          </span>
-                          👤 {attendee.name}
-                          {attendee.role === 'admin' && (
-                            <span className="admin-badge">
-                              👑 ADMIN
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div style={{ flex: 1 }}>
+                          <div className="attendee-name">
+                            <span style={{ 
+                              background: '#e8f5e8', 
+                              color: '#2e7d32', 
+                              padding: '0.2rem 0.5rem', 
+                              borderRadius: '12px', 
+                              fontSize: '0.8rem', 
+                              fontWeight: 'bold', 
+                              marginRight: '0.5rem' 
+                            }}>
+                              #{attendee.joinOrder || index + 1}
                             </span>
-                          )}
+                            👤 {attendee.name}
+                            {attendee.role === 'admin' && (
+                              <span className="admin-badge">
+                                👑 ADMIN
+                              </span>
+                            )}
+                          </div>
+                          <div className="attendee-detail">
+                            🏢 <span>{attendee.team}</span>
+                          </div>
+                          <div className="attendee-detail">
+                            📞 <span>{attendee.phone}</span>
+                          </div>
+                          <div className="attendee-detail" style={{ 
+                            marginTop: '0.5rem', 
+                            fontSize: '0.8rem', 
+                            color: '#666',
+                            fontStyle: 'italic' 
+                          }}>
+                            🕐 Joined {formatJoinTime(attendee.joinedAt)}
+                          </div>
                         </div>
-                        <div className="attendee-detail">
-                          🏢 <span>{attendee.team}</span>
-                        </div>
-                        <div className="attendee-detail">
-                          📞 <span>{attendee.phone}</span>
-                        </div>
-                        <div className="attendee-detail" style={{ 
-                          marginTop: '0.5rem', 
-                          fontSize: '0.8rem', 
-                          color: '#666',
-                          fontStyle: 'italic' 
-                        }}>
-                          🕐 Joined {formatJoinTime(attendee.joinedAt)}
-                        </div>
+                        {canEdit() && (
+                          <button
+                            onClick={() => handleRemoveAttendee(attendee)}
+                            className="btn btn-danger"
+                            style={{ 
+                              fontSize: '0.8rem', 
+                              padding: '0.3rem 0.6rem',
+                              marginLeft: '1rem',
+                              marginTop: '0.2rem'
+                            }}
+                            title={`Remove ${attendee.name} from event`}
+                          >
+                            🗑️ Remove
+                          </button>
+                        )}
                       </div>
                     )}
                   </li>
