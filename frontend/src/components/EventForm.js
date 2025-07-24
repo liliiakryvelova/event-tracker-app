@@ -3,8 +3,14 @@ import { createEvent, updateEvent, getEvent, getEvents } from '../services/event
 import { useUser } from '../contexts/UserContext';
 
 const EventForm = ({ eventId, onSuccess, onCancel }) => {
-  const { canCreate } = useUser();
+  const { canCreate, canEdit } = useUser();
   const isEditing = !!eventId;
+
+  console.log('📝 EventForm rendered with props:');
+  console.log('📝 eventId:', eventId);
+  console.log('📝 isEditing:', isEditing);
+  console.log('📝 onSuccess:', onSuccess);
+  console.log('📝 onCancel:', onCancel);
 
   // All useState hooks must come before any conditional returns
   const [formData, setFormData] = useState({
@@ -27,10 +33,18 @@ const EventForm = ({ eventId, onSuccess, onCancel }) => {
   // All useEffect hooks must come before any conditional returns
   // Handle authentication check
   useEffect(() => {
-    if (!canCreate() && onCancel) {
+    const hasPermission = isEditing ? canEdit() : canCreate();
+    console.log('📝 EventForm permission check:');
+    console.log('📝 isEditing:', isEditing);
+    console.log('📝 canCreate():', canCreate());
+    console.log('📝 canEdit():', canEdit());
+    console.log('📝 hasPermission:', hasPermission);
+    
+    if (!hasPermission && onCancel) {
+      console.log('📝 No permission, calling onCancel');
       onCancel(); // Return to events list if not authenticated
     }
-  }, [canCreate, onCancel]);
+  }, [canCreate, canEdit, isEditing, onCancel]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -75,8 +89,13 @@ const EventForm = ({ eventId, onSuccess, onCancel }) => {
   }, [eventId, isEditing]);
 
   // Show loading while checking authentication (after all hooks)
-  if (!canCreate()) {
-    return <div className="loading">Checking permissions...</div>;
+  const hasPermission = isEditing ? canEdit() : canCreate();
+  if (!hasPermission) {
+    return (
+      <div className="loading">
+        {isEditing ? 'Checking edit permissions...' : 'Checking create permissions...'}
+      </div>
+    );
   }
 
   const handleChange = (e) => {

@@ -437,9 +437,13 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
               <button 
                 onClick={() => {
                   console.log('✏️ Edit button clicked for event:', eventId);
+                  console.log('✏️ Event object:', event);
                   console.log('✏️ onEdit callback:', onEdit);
+                  console.log('✏️ onEdit type:', typeof onEdit);
                   if (onEdit) {
+                    console.log('✏️ Calling onEdit()...');
                     onEdit();
+                    console.log('✏️ onEdit() called successfully');
                   } else {
                     console.error('❌ onEdit callback is not defined');
                   }

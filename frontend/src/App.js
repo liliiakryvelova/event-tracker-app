@@ -63,9 +63,14 @@ const AppContent = () => {
   };
 
   const showEditEvent = (eventId) => {
-    console.log('✏️ Navigating to edit event:', eventId);
+    console.log('✏️ showEditEvent called with eventId:', eventId);
+    console.log('✏️ Current activeView before edit:', activeView);
+    console.log('✏️ Current editingEventId before edit:', editingEventId);
     setEditingEventId(eventId);
     setActiveView('edit');
+    setViewingEventId(null); // Clear viewing when editing
+    console.log('✏️ Set editingEventId to:', eventId);
+    console.log('✏️ Set activeView to: edit');
   };
 
   const showEventDetail = (eventId) => {
