@@ -1,9 +1,8 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { useUser } from '../contexts/UserContext';
 
-const Header = () => {
-  const { user, logout, isAdmin, isAuthenticated } = useUser();
+const Header = ({ onShowLogin }) => {
+  const { user, logout, isAdmin } = useUser();
 
   const getRoleIcon = (role) => {
     switch (role) {
@@ -74,16 +73,20 @@ const Header = () => {
             ) : (
               <div style={{ color: 'white', fontSize: '0.9rem', opacity: 0.9 }}>
                 👤 Guest User (View & Join Events) • 
-                <Link 
-                  to="/login" 
+                <button
+                  onClick={onShowLogin}
                   style={{ 
+                    background: 'none',
+                    border: 'none',
                     color: 'white', 
                     textDecoration: 'underline',
-                    marginLeft: '0.5rem'
+                    marginLeft: '0.5rem',
+                    cursor: 'pointer',
+                    fontSize: 'inherit'
                   }}
                 >
                   Admin Login
-                </Link>
+                </button>
               </div>
             )}
           </div>

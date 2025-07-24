@@ -81,7 +81,7 @@ const AppContent = () => {
 
   return (
     <div className="App">
-      <Header />
+      <Header onShowLogin={showLogin} />
 
       <nav className="nav">
         <div className="container">
