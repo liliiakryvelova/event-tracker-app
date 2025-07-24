@@ -82,6 +82,17 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
     return () => clearInterval(interval);
   }, [loadEvent]);
 
+  // Pre-populate admin info when join form is shown
+  useEffect(() => {
+    if (showJoinForm && isAuthenticated() && user && !user.phone) {
+      // Pre-populate name for admin users
+      setGuestInfo(prev => ({
+        ...prev,
+        name: user.username ? `${user.username} (Admin)` : user.name || 'Admin User'
+      }));
+    }
+  }, [showJoinForm, isAuthenticated, user]);
+
   const handleDelete = async () => {
     const attendeeCount = event.attendees?.length || 0;
     const confirmMessage = attendeeCount > 0 
@@ -184,19 +195,32 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
   };
 
   const handleLeaveEvent = async () => {
-    const userPhone = isAuthenticated() ? user.phone : guestInfo.phone;
-    
-    if (!userPhone) {
+    if (!isAuthenticated()) {
       alert('Unable to identify your registration. Please contact an administrator.');
       return;
     }
     
     if (window.confirm(`Are you sure you want to leave "${event.title}"?`)) {
       try {
-        const updatedEvent = {
-          ...event,
-          attendees: event.attendees.filter(attendee => attendee.phone !== userPhone)
-        };
+        let updatedEvent;
+        
+        // If user has phone, remove by phone
+        if (user.phone) {
+          updatedEvent = {
+            ...event,
+            attendees: event.attendees.filter(attendee => attendee.phone !== user.phone)
+          };
+        } else {
+          // If user doesn't have phone (like admin), remove by name/username
+          updatedEvent = {
+            ...event,
+            attendees: event.attendees.filter(attendee => 
+              attendee.name !== user.username && 
+              attendee.name !== user.name &&
+              attendee.name !== `${user.username} (Admin)`
+            )
+          };
+        }
 
         await updateEvent(eventId, updatedEvent);
         setEvent(updatedEvent);
@@ -210,8 +234,23 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
   };
 
   const isUserAttending = () => {
-    if (!event || !isAuthenticated() || !user.phone) return false;
-    return event.attendees.some(attendee => attendee.phone === user.phone);
+    if (!event || !isAuthenticated()) return false;
+    
+    // If user has phone, check by phone
+    if (user.phone) {
+      return event.attendees.some(attendee => attendee.phone === user.phone);
+    }
+    
+    // If user doesn't have phone (like admin), check by username or name
+    if (user.username) {
+      return event.attendees.some(attendee => 
+        attendee.name === user.username || 
+        attendee.name === user.name ||
+        attendee.name === `${user.username} (Admin)`
+      );
+    }
+    
+    return false;
   };
 
   const getStatusBadge = (status) => {
@@ -301,7 +340,14 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
               ) : (
                 <button 
                   className="btn btn-success"
-                  onClick={() => handleJoinEvent({ preventDefault: () => {} })}
+                  onClick={() => {
+                    // If admin doesn't have phone, show join form to collect info
+                    if (!user.phone) {
+                      setShowJoinForm(true);
+                    } else {
+                      handleJoinEvent({ preventDefault: () => {} });
+                    }
+                  }}
                   disabled={event.attendees.length >= Math.min(event.maxAttendees || 20, 20)}
                   title={event.attendees.length >= Math.min(event.maxAttendees || 20, 20) ? 'Event is full' : 'Join this event'}
                 >
