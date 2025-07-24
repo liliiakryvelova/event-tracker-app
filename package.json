@@ -10,9 +10,10 @@
     "server": "nodemon backend/index.js",
     "dev:full": "concurrently \"npm run server\" \"npm run client\"",
     "install-all": "npm install && cd frontend && npm install",
-    "build": "cd frontend && npm run build",
+    "build": "cd frontend && npm install && npm run build",
     "build:frontend": "cd frontend && npm run build",
-    "production": "NODE_ENV=production node backend/index.js"
+    "production": "NODE_ENV=production node backend/index.js",
+    "heroku-postbuild": "cd frontend && npm install && npm run build"
   },
   "keywords": [
     "event-tracker",

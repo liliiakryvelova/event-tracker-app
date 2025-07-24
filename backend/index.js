@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const path = require('path');
 const { initializeDatabase, dbQueries } = require('./database');
 
 const app = express();
@@ -10,6 +11,10 @@ const PORT = process.env.PORT || 8000;
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// Serve static files from frontend build
+const frontendPath = path.join(__dirname, '../frontend/build');
+app.use(express.static(frontendPath));
 
 // Validation function for event data
 const validateEventData = (eventData) => {
@@ -166,6 +171,11 @@ app.get('/api/status', async (req, res) => {
       timestamp: new Date().toISOString()
     });
   }
+});
+
+// Catch-all handler: send back React's index.html file for any non-API routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
 // Initialize database and start server
