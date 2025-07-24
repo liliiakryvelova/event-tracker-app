@@ -1,10 +1,36 @@
 services:
+  # Frontend: Static Site (SPA)
   - type: web
     name: event-tracker-frontend-qv6e
+    runtime: static
+    buildCommand: cd frontend && npm ci && npm run build
+    staticPublishPath: ./frontend/build
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: Strict-Transport-Security
+        value: max-age=31536000; includeSubDomains; preload
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-XSS-Protection
+        value: 1; mode=block
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+        
+  # Backend: API Server
+  - type: web
+    name: event-tracker-backend
     runtime: node
-    buildCommand: |
-      cd frontend && npm ci && npm run build &&
-      cd ../backend && npm ci
+    buildCommand: cd backend && npm ci
     startCommand: cd backend && npm start
     envVars:
       - key: NODE_ENV

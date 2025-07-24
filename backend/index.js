@@ -24,7 +24,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// CORS configuration for separate frontend deployment
+// CORS configuration for separate SPA deployment
 app.use(cors({
   origin: [
     'https://event-tracker-frontend-qv6e.onrender.com',
@@ -35,16 +35,7 @@ app.use(cors({
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Serve static files from frontend build (for monolithic deployment)
-const frontendPath = path.join(__dirname, '../frontend/build');
-console.log('Frontend build path:', frontendPath);
-app.use(express.static(frontendPath));
-
-// Add explicit static file serving with proper headers
-app.use(express.static(frontendPath, {
-  maxAge: '1d',
-  etag: false
-}));
+// Backend only serves API - frontend is deployed as separate static site
 
 // Validation function for event data
 const validateEventData = (eventData) => {
@@ -92,9 +83,9 @@ app.get('/api/', (req, res) => {
       'GET /api/status': 'Database status'
     },
     frontend: 'https://event-tracker-frontend-qv6e.onrender.com',
-    backend: 'This API service',
+    backend: 'https://event-tracker-backend.onrender.com',
     documentation: 'Visit the endpoints above to interact with the API',
-    note: 'Monolithic deployment - backend serves frontend build files'
+    note: 'SPA deployment - frontend and backend are separate services'
   });
 });
 
@@ -186,10 +177,11 @@ app.get('/api/health', (req, res) => {
 // Debug route to check frontend build status
 app.get('/api/debug/frontend', (req, res) => {
   res.json({
-    message: 'Monolithic deployment - backend serves frontend build files',
+    message: 'SPA deployment - frontend and backend are separate services',
     frontendUrl: 'https://event-tracker-frontend-qv6e.onrender.com',
-    deploymentType: 'Single service - backend serves React build',
-    note: 'Backend serves static files from frontend/build directory',
+    backendUrl: 'https://event-tracker-backend.onrender.com',
+    deploymentType: 'Static frontend + API backend',
+    note: 'Frontend is deployed as static site, backend serves API only',
     timestamp: new Date().toISOString()
   });
 });
@@ -272,35 +264,28 @@ app.get('/api/db-integrity', async (req, res) => {
   }
 });
 
-// Catch-all handler: serve React app for ALL non-API routes (including root)
-app.get('*', (req, res) => {
-  // Only handle API routes with API responses
-  if (req.path.startsWith('/api/')) {
-    return res.status(404).json({ error: 'API endpoint not found' });
-  }
-  
-  // For ALL other routes (including /, /create, /login, /event/123, etc.)
-  // Serve index.html and let React Router handle the routing
-  const indexPath = path.join(frontendPath, 'index.html');
-  console.log(`Serving React app for route: ${req.path}`);
-  
-  // Check if index.html exists
-  const fs = require('fs');
-  if (fs.existsSync(indexPath)) {
-    console.log(`✅ Serving index.html for route: ${req.path}`);
-    // Always serve index.html and let React Router handle the routing
-    res.sendFile(indexPath);
-  } else {
-    console.error(`❌ index.html not found at: ${indexPath}`);
-    res.status(500).send(`
-      <h1>Frontend Build Not Found</h1>
-      <p>The React app build files are not available.</p>
-      <p><strong>Expected path:</strong> ${indexPath}</p>
-      <p>Please check the build process.</p>
-      <hr>
-      <p><a href="/api/debug/frontend">Debug: Check frontend build status</a></p>
-    `);
-  }
+// API-only server - all routes should be under /api/
+// Frontend routing is handled by the static site deployment
+app.use('*', (req, res) => {
+  res.status(404).json({ 
+    error: 'API endpoint not found',
+    availableEndpoints: [
+      'GET /api/',
+      'GET /api/events',
+      'GET /api/events/:id',
+      'POST /api/events',
+      'PUT /api/events/:id',
+      'DELETE /api/events/:id',
+      'GET /api/health',
+      'GET /api/status',
+      'GET /api/debug/frontend',
+      'GET /api/debug/requests',
+      'GET /api/db-integrity'
+    ],
+    frontend: 'https://event-tracker-frontend-qv6e.onrender.com',
+    backend: 'https://event-tracker-backend.onrender.com',
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Initialize database and start server
