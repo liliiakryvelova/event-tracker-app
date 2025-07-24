@@ -50,16 +50,16 @@ const AppContent = () => {
           <div className="container">
             <ul>
               <li>
-                <Link to="/">📋 All Events</Link>
+                <Link to="/"><span>🏐 All Events</span></Link>
               </li>
               {canCreate() && (
                 <li>
-                  <Link to="/create">➕ Create Event</Link>
+                  <Link to="/create"><span>⚡ Create Event</span></Link>
                 </li>
               )}
               {!isAuthenticated() && (
                 <li>
-                  <Link to="/login">🔐 Admin Login</Link>
+                  <Link to="/login"><span>� Admin Login</span></Link>
                 </li>
               )}
             </ul>

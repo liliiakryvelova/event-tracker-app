@@ -42,7 +42,7 @@ const Header = () => {
     <header className="header">
       <div className="container">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h1>🎉 Event Tracker</h1>
+          <h1>� Catchball Events</h1>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             {user ? (

@@ -1,46 +1,113 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: #f5f5f5;
-}
+/* Sporty Catchball Theme - Dynamic & Athletic */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+:root {
+  /* Sporty Color Palette */
+  --primary-orange: #FF6B35;
+  --primary-blue: #1E88E5;
+  --electric-green: #00E676;
+  --energy-purple: #7C4DFF;
+  --vibrant-yellow: #FFD600;
+  --sport-red: #FF3D71;
+  --sport-gray: #263238;
+  --light-gray: #ECEFF1;
+  --white: #FFFFFF;
+  
+  /* Gradients */
+  --hero-gradient: linear-gradient(135deg, var(--primary-orange) 0%, var(--sport-red) 100%);
+  --card-gradient: linear-gradient(135deg, rgba(30, 136, 229, 0.1) 0%, rgba(255, 107, 53, 0.1) 100%);
+  --energy-gradient: linear-gradient(135deg, var(--electric-green) 0%, var(--energy-purple) 100%);
+  --button-gradient: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-orange) 100%);
+  
+  /* Shadows */
+  --sport-shadow: 0 8px 32px rgba(255, 107, 53, 0.2);
+  --energy-shadow: 0 4px 20px rgba(30, 136, 229, 0.3);
+  --hover-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
 }
 
 * {
   box-sizing: border-box;
 }
 
+body {
+  margin: 0;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  color: var(--sport-gray);
+  font-weight: 400;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+
+/* Container & Layout */
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
 }
 
+/* Athletic Header */
 .header {
-  background-color: #2c3e50;
+  background: var(--hero-gradient);
   color: white;
-  padding: 1rem 0;
+  padding: 2rem 0;
   margin-bottom: 2rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: var(--sport-shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><defs><radialGradient id="a" cx="50" cy="40" r="50"><stop offset="0" stop-color="white" stop-opacity=".1"/><stop offset="1" stop-color="white" stop-opacity="0"/></radialGradient></defs><rect width="11" height="20" fill="url(%23a)"/><rect x="20" width="11" height="20" fill="url(%23a)"/><rect x="40" width="11" height="20" fill="url(%23a)"/><rect x="60" width="11" height="20" fill="url(%23a)"/><rect x="80" width="11" height="20" fill="url(%23a)"/></svg>') repeat-x;
+  opacity: 0.1;
+  animation: slide 20s linear infinite;
+}
+
+@keyframes slide {
+  0% { transform: translateX(-100px); }
+  100% { transform: translateX(100px); }
 }
 
 .header h1 {
   margin: 0;
   text-align: center;
-  font-size: 2rem;
+  font-size: 3rem;
+  font-weight: 800;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  position: relative;
+  z-index: 1;
 }
 
+.header h1::after {
+  content: '🏐';
+  margin-left: 1rem;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-20px); }
+  60% { transform: translateY(-10px); }
+}
+
+/* Dynamic Navigation */
 .nav {
-  background-color: #34495e;
+  background: linear-gradient(135deg, var(--sport-gray) 0%, var(--primary-blue) 100%);
   padding: 0;
   margin-bottom: 2rem;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: var(--energy-shadow);
 }
 
 .nav ul {
@@ -53,343 +120,664 @@ code {
 
 .nav li {
   margin: 0;
+  position: relative;
 }
 
 .nav a {
   display: block;
   color: white;
   text-decoration: none;
-  padding: 1rem 2rem;
-  transition: background-color 0.3s;
+  padding: 1.2rem 2.5rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.nav a::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: var(--energy-gradient);
+  transition: left 0.3s ease;
+  z-index: 0;
+}
+
+.nav a:hover::before,
+.nav a.active::before {
+  left: 0;
+}
+
+.nav a span {
+  position: relative;
+  z-index: 1;
 }
 
 .nav a:hover,
 .nav a.active {
-  background-color: #2c3e50;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
 }
 
+/* Athletic Cards */
 .card {
-  background: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  margin-bottom: 1rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  transition: box-shadow 0.3s;
+  background: var(--white);
+  border-radius: 20px;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--energy-shadow);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--hero-gradient);
 }
 
 .card:hover {
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: var(--hover-shadow);
+  border-color: var(--primary-orange);
 }
 
+/* Dynamic Buttons */
 .btn {
-  background-color: #3498db;
+  background: var(--button-gradient);
   color: white;
   border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 4px;
+  padding: 1rem 2rem;
+  border-radius: 50px;
   cursor: pointer;
   font-size: 1rem;
-  transition: background-color 0.3s;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   text-decoration: none;
   display: inline-block;
-  margin-right: 0.5rem;
-  margin-bottom: 0.5rem;
+  margin-right: 0.8rem;
+  margin-bottom: 0.8rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(30, 136, 229, 0.4);
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn:hover::before {
+  width: 300px;
+  height: 300px;
 }
 
 .btn:hover {
-  background-color: #2980b9;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(30, 136, 229, 0.6);
 }
 
+.btn:active {
+  transform: translateY(-1px);
+}
+}
+
+/* Sporty Button Variants */
 .btn-danger {
-  background-color: #e74c3c;
+  background: linear-gradient(135deg, var(--sport-red) 0%, #FF1744 100%);
+  box-shadow: 0 4px 15px rgba(255, 61, 113, 0.4);
 }
 
 .btn-danger:hover {
-  background-color: #c0392b;
+  box-shadow: 0 8px 25px rgba(255, 61, 113, 0.6);
 }
 
 .btn-success {
-  background-color: #27ae60;
+  background: linear-gradient(135deg, var(--electric-green) 0%, #00C853 100%);
+  box-shadow: 0 4px 15px rgba(0, 230, 118, 0.4);
 }
 
 .btn-success:hover {
-  background-color: #229954;
+  box-shadow: 0 8px 25px rgba(0, 230, 118, 0.6);
 }
 
+/* Athletic Form Styling */
 .form-group {
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 0.5rem;
-  font-weight: bold;
-  color: #2c3e50;
+  margin-bottom: 0.8rem;
+  font-weight: 600;
+  color: var(--sport-gray);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.9rem;
 }
 
 .form-group input,
 .form-group textarea,
 .form-group select {
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 1rem 1.5rem;
+  border: 2px solid var(--light-gray);
+  border-radius: 15px;
   font-size: 1rem;
+  font-family: 'Poppins', sans-serif;
+  transition: all 0.3s ease;
+  background: var(--white);
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--primary-orange);
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+  transform: translateY(-2px);
 }
 
 .form-group textarea {
   resize: vertical;
-  min-height: 100px;
+  min-height: 120px;
 }
 
+/* Dynamic Event Grid */
 .events-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 2rem;
   margin-top: 2rem;
 }
 
+/* Energetic Event Cards */
 .event-card {
-  background: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  transition: transform 0.3s, box-shadow 0.3s;
+  background: var(--white);
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: var(--energy-shadow);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.event-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: var(--energy-gradient);
 }
 
 .event-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transform: translateY(-10px) rotateX(5deg);
+  box-shadow: var(--hover-shadow);
+  border-color: var(--electric-green);
 }
 
 .event-title {
-  font-size: 1.25rem;
-  font-weight: bold;
-  color: #2c3e50;
-  margin-bottom: 0.5rem;
-}
-
-.event-meta {
-  color: #7f8c8d;
-  font-size: 0.9rem;
-  margin-bottom: 1rem;
-}
-
-.event-description {
-  color: #555;
-  margin-bottom: 1rem;
-  line-height: 1.5;
-}
-
-.status-badge {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.8rem;
-  font-weight: bold;
-  text-transform: uppercase;
-}
-
-.status-scheduled {
-  background-color: #e8f5e8;
-  color: #27ae60;
-}
-
-.status-planned {
-  background-color: #e3f2fd;
-  color: #2196f3;
-}
-
-.status-completed {
-  background-color: #f3e5f5;
-  color: #9c27b0;
-}
-
-.status-cancelled {
-  background-color: #ffebee;
-  color: #f44336;
-}
-
-.loading {
-  text-align: center;
-  padding: 2rem;
-  color: #7f8c8d;
-}
-
-.error {
-  background-color: #ffebee;
-  color: #c62828;
-  padding: 1rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-  border-left: 4px solid #f44336;
-}
-
-.success {
-  background-color: #e8f5e8;
-  color: #2e7d32;
-  padding: 1rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-  border-left: 4px solid #4caf50;
-}
-
-/* Authentication styles */
-.auth-container {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.login-card {
-  background: white;
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-  width: 100%;
-  max-width: 400px;
-}
-
-.role-indicator {
-  font-size: 0.8rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 8px;
-  margin-left: 0.5rem;
-}
-
-.admin-indicator {
-  background-color: #ffe6e6;
-  color: #d32f2f;
-  border: 1px solid #ffcdd2;
-}
-
-.user-indicator {
-  background-color: #e3f2fd;
-  color: #1976d2;
-  border: 1px solid #bbdefb;
-}
-
-.guest-indicator {
-  background-color: #f3e5f5;
-  color: #7b1fa2;
-  border: 1px solid #e1bee7;
-}
-
-.access-denied {
-  text-align: center;
-  padding: 2rem;
-  color: #d32f2f;
-  font-style: italic;
-}
-
-/* Button enhancements for admin actions */
-.admin-only {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--sport-gray);
+  margin-bottom: 0.8rem;
   position: relative;
 }
 
-.admin-only::before {
-  content: "👑";
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  font-size: 12px;
-  background: #ff6b6b;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.event-title::after {
+  content: '⚡';
+  margin-left: 0.5rem;
+  color: var(--vibrant-yellow);
+  animation: spark 1.5s ease-in-out infinite alternate;
 }
 
-/* Enhanced attendee cards */
-.attendee-card {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  border: 1px solid #dee2e6;
-  border-radius: 12px;
-  padding: 1rem;
-  margin: 0.75rem 0;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
+@keyframes spark {
+  0% { transform: scale(1); opacity: 0.7; }
+  100% { transform: scale(1.2); opacity: 1; }
 }
 
-.attendee-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-.attendee-name {
-  font-weight: bold;
-  font-size: 1.1rem;
-  color: #2c3e50;
-  margin-bottom: 0.5rem;
-}
-
-.attendee-detail {
-  font-size: 0.9rem;
-  color: #6c757d;
-  margin-bottom: 0.25rem;
+.event-meta {
+  color: var(--primary-blue);
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.admin-badge {
-  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
-  color: white;
-  padding: 0.2rem 0.6rem;
-  border-radius: 12px;
-  font-size: 0.7rem;
-  font-weight: bold;
-  text-transform: uppercase;
-  box-shadow: 0 2px 4px rgba(255,107,107,0.3);
+.event-description {
+  color: #555;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+  font-weight: 400;
 }
 
-/* Enhanced form styling */
+/* Vibrant Status Badges */
+.status-badge {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 25px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  position: relative;
+  overflow: hidden;
+}
+
+.status-scheduled {
+  background: linear-gradient(135deg, var(--electric-green) 0%, #00C853 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(0, 230, 118, 0.3);
+}
+
+.status-planned {
+  background: linear-gradient(135deg, var(--primary-blue) 0%, #1976D2 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(30, 136, 229, 0.3);
+}
+
+.status-completed {
+  background: linear-gradient(135deg, var(--energy-purple) 0%, #673AB7 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(124, 77, 255, 0.3);
+}
+
+.status-cancelled {
+  background: linear-gradient(135deg, var(--sport-red) 0%, #D32F2F 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(255, 61, 113, 0.3);
+}
+
+/* Athletic Loading & States */
+.loading {
+  text-align: center;
+  padding: 3rem;
+  color: var(--primary-blue);
+  font-size: 1.2rem;
+  font-weight: 600;
+  position: relative;
+}
+
+.loading::after {
+  content: '🏐';
+  display: block;
+  font-size: 3rem;
+  margin-top: 1rem;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error {
+  background: linear-gradient(135deg, rgba(255, 61, 113, 0.1) 0%, rgba(255, 23, 68, 0.1) 100%);
+  color: var(--sport-red);
+  padding: 1.5rem;
+  border-radius: 15px;
+  margin-bottom: 1.5rem;
+  border-left: 4px solid var(--sport-red);
+  font-weight: 500;
+  box-shadow: 0 4px 15px rgba(255, 61, 113, 0.2);
+}
+
+.success {
+  background: linear-gradient(135deg, rgba(0, 230, 118, 0.1) 0%, rgba(0, 200, 83, 0.1) 100%);
+  color: var(--electric-green);
+  padding: 1.5rem;
+  border-radius: 15px;
+  margin-bottom: 1.5rem;
+  border-left: 4px solid var(--electric-green);
+  font-weight: 500;
+  box-shadow: 0 4px 15px rgba(0, 230, 118, 0.2);
+}
+
+/* Dynamic Authentication Styles */
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-blue) 50%, var(--energy-purple) 100%);
+  background-size: 300% 300%;
+  animation: gradientShift 6s ease infinite;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.login-card {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 3rem;
+  border-radius: 25px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  width: 100%;
+  max-width: 450px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.login-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--energy-gradient);
+}
+
+/* Sporty Role Indicators */
+.role-indicator {
+  font-size: 0.8rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  margin-left: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.admin-indicator {
+  background: linear-gradient(135deg, var(--sport-red) 0%, #FF1744 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(255, 61, 113, 0.3);
+}
+
+.user-indicator {
+  background: linear-gradient(135deg, var(--primary-blue) 0%, #1976D2 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(30, 136, 229, 0.3);
+}
+
+.guest-indicator {
+  background: linear-gradient(135deg, var(--energy-purple) 0%, #673AB7 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(124, 77, 255, 0.3);
+}
+
+.access-denied {
+  text-align: center;
+  padding: 3rem;
+  color: var(--sport-red);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.1rem;
+}
+
+/* Athletic Admin Enhancements */
+.admin-only {
+  position: relative;
+}
+
+.admin-only::before {
+  content: '👑';
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  font-size: 16px;
+  background: var(--energy-gradient);
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(124, 77, 255, 0.4);
+  animation: crown-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes crown-glow {
+  0% { transform: scale(1); box-shadow: 0 4px 15px rgba(124, 77, 255, 0.4); }
+  100% { transform: scale(1.1); box-shadow: 0 6px 20px rgba(124, 77, 255, 0.6); }
+}
+
+/* Athletic Attendee Cards */
+.attendee-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 249, 250, 0.9) 100%);
+  border: 2px solid transparent;
+  border-radius: 20px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+  box-shadow: var(--energy-shadow);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.attendee-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--energy-gradient);
+}
+
+.attendee-card:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: var(--hover-shadow);
+  border-color: var(--electric-green);
+}
+
+.attendee-name {
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--sport-gray);
+  margin-bottom: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.attendee-detail {
+  font-size: 0.95rem;
+  color: var(--primary-blue);
+  margin-bottom: 0.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-weight: 500;
+}
+
+/* Dynamic Admin Badge */
+.admin-badge {
+  background: var(--energy-gradient);
+  color: white;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 15px rgba(124, 77, 255, 0.4);
+  animation: pulse-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-glow {
+  0% { box-shadow: 0 4px 15px rgba(124, 77, 255, 0.4); }
+  100% { box-shadow: 0 6px 20px rgba(124, 77, 255, 0.6); }
+}
+
+/* Athletic Form Enhancement */
 .join-form {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  border: 2px solid #e3f2fd;
-  border-radius: 12px;
-  padding: 2rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 249, 250, 0.95) 100%);
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  border-radius: 25px;
+  padding: 2.5rem;
+  box-shadow: var(--energy-shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.join-form::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--energy-gradient);
+  border-radius: 25px;
+  padding: 3px;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  z-index: -1;
+}
+
+.join-form h3 {
+  color: var(--sport-gray);
+  font-weight: 700;
+  margin-bottom: 2rem;
+  text-align: center;
+  font-size: 1.3rem;
 }
 
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
+/* Responsive Design */
 @media (max-width: 768px) {
   .form-row {
     grid-template-columns: 1fr;
   }
+  
+  .header h1 {
+    font-size: 2.2rem;
+  }
+  
+  .nav a {
+    padding: 1rem 1.5rem;
+    font-size: 0.9rem;
+  }
+  
+  .events-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .btn {
+    padding: 0.8rem 1.5rem;
+    font-size: 0.9rem;
+  }
 }
 
-/* Live indicator animation */
+/* Enhanced Pulse Animation */
 @keyframes pulse {
   0% {
     opacity: 1;
+    transform: scale(1);
   }
   50% {
-    opacity: 0.5;
+    opacity: 0.7;
+    transform: scale(1.05);
   }
   100% {
     opacity: 1;
+    transform: scale(1);
   }
 }
 
-/* Disabled button styling */
+/* Athletic Disabled State */
 .btn:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
-  background: #ccc !important;
+  background: linear-gradient(135deg, #ccc 0%, #999 100%) !important;
   color: #666 !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 .btn:disabled:hover {
-  transform: none;
-  box-shadow: none;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Sport-Themed Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--light-gray);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--energy-gradient);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--hero-gradient);
+}
+
+/* Page Transitions */
+.page-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
+}
+
+/* Athletic Focus States */
+.btn:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 3px solid rgba(255, 107, 53, 0.3);
+  outline-offset: 2px;
+}
+
+/* Success State Animation */
+.success-bounce {
+  animation: successBounce 0.6s ease-out;
+}
+
+@keyframes successBounce {
+  0% { transform: scale(0.3); opacity: 0; }
+  50% { transform: scale(1.05); }
+  70% { transform: scale(0.9); }
+  100% { transform: scale(1); opacity: 1; }
 }
