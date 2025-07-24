@@ -12,8 +12,12 @@ export const useUser = () => {
 
 // API configuration
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://event-tracker-app-u25w.onrender.com/api'
+  ? process.env.REACT_APP_API_URL || 'https://event-tracker-app-u25w.onrender.com/api'
   : 'http://localhost:8000/api';
+
+console.log('🔧 UserContext Environment:', process.env.NODE_ENV);
+console.log('🔧 UserContext REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
+console.log('🔧 UserContext Final API_BASE_URL:', API_BASE_URL);
 
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -33,6 +37,10 @@ export const UserProvider = ({ children }) => {
   }, []);
 
   const login = async (username, password) => {
+    console.log('🔐 Starting login attempt...');
+    console.log('🔐 API_BASE_URL:', API_BASE_URL);
+    console.log('🔐 Full login URL:', `${API_BASE_URL}/auth/login`);
+    
     try {
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
@@ -42,7 +50,11 @@ export const UserProvider = ({ children }) => {
         body: JSON.stringify({ username, password }),
       });
 
+      console.log('🔐 Response status:', response.status);
+      console.log('🔐 Response URL:', response.url);
+      
       const result = await response.json();
+      console.log('🔐 Response data:', result);
 
       if (result.success) {
         const userData = {
@@ -64,7 +76,7 @@ export const UserProvider = ({ children }) => {
         };
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('🔐 Login error:', error);
       return { 
         success: false, 
         message: 'Network error. Please try again.' 
