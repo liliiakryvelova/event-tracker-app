@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
 import { createEvent, updateEvent, getEvent, getEvents } from '../services/eventService';
 import { useUser } from '../contexts/UserContext';
 
-const EventForm = ({ onSuccess }) => {
-  const navigate = useNavigate();
-  const { id } = useParams();
+const EventForm = ({ eventId, onSuccess, onCancel }) => {
   const { canCreate } = useUser();
-  const isEditing = !!id;
+  const isEditing = !!eventId;
 
   // All useState hooks must come before any conditional returns
   const [formData, setFormData] = useState({
@@ -28,19 +25,19 @@ const EventForm = ({ onSuccess }) => {
   const [eventCount, setEventCount] = useState(0);
 
   // All useEffect hooks must come before any conditional returns
-  // Redirect if user cannot create events
+  // Handle authentication check
   useEffect(() => {
-    if (!canCreate()) {
-      navigate('/login');
+    if (!canCreate() && onCancel) {
+      onCancel(); // Return to events list if not authenticated
     }
-  }, [canCreate, navigate]);
+  }, [canCreate, onCancel]);
 
   useEffect(() => {
     const loadData = async () => {
-      if (isEditing) {
+      if (isEditing && eventId) {
         try {
           setLoading(true);
-          const event = await getEvent(id);
+          const event = await getEvent(eventId);
           setFormData({
             title: event.title || '',
             description: event.description || '',
@@ -56,7 +53,7 @@ const EventForm = ({ onSuccess }) => {
         } finally {
           setLoading(false);
         }
-      } else {
+      } else if (!isEditing) {
         try {
           const events = await getEvents();
           setEventCount(events.length);
@@ -66,7 +63,7 @@ const EventForm = ({ onSuccess }) => {
       }
     };
     loadData();
-  }, [id, isEditing]);
+  }, [eventId, isEditing]);
 
   // Show loading while checking authentication (after all hooks)
   if (!canCreate()) {
@@ -126,17 +123,21 @@ const EventForm = ({ onSuccess }) => {
       };
 
       if (isEditing) {
-        await updateEvent(id, eventData);
+        await updateEvent(eventId, eventData);
         setSuccess('Event updated successfully!');
       } else {
         await createEvent(eventData);
         setSuccess('Event created successfully!');
       }
       
-      onSuccess();
+      if (onSuccess) {
+        onSuccess();
+      }
       
       setTimeout(() => {
-        navigate('/');
+        if (onCancel) {
+          onCancel(); // Return to events list
+        }
       }, 1500);
     } catch (error) {
       setError(isEditing ? 'Failed to update event' : 'Failed to create event');
@@ -146,7 +147,9 @@ const EventForm = ({ onSuccess }) => {
   };
 
   const handleCancel = () => {
-    navigate('/');
+    if (onCancel) {
+      onCancel(); // Return to events list
+    }
   };
 
   if (loading && isEditing) {

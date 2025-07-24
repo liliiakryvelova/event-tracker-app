@@ -1,9 +1,8 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { deleteEvent } from '../services/eventService';
 import { useUser } from '../contexts/UserContext';
 
-const EventList = ({ events, loading, error, onRefresh }) => {
+const EventList = ({ events, loading, error, onRefresh, onEditEvent, onViewEvent }) => {
   const { canEdit, canDelete, canCreate, isAuthenticated } = useUser();
   
   const handleDelete = async (id, title) => {
@@ -43,7 +42,12 @@ const EventList = ({ events, loading, error, onRefresh }) => {
         <h2>No Events Found</h2>
         <p>No events have been created yet.</p>
         {canCreate() && (
-          <Link to="/create" className="btn">Create Your First Event</Link>
+          <button 
+            onClick={() => onEditEvent && onEditEvent('create')} 
+            className="btn"
+          >
+            Create Your First Event
+          </button>
         )}
         {!isAuthenticated() && (
           <p style={{ marginTop: '1rem', color: '#666', fontStyle: 'italic' }}>
@@ -119,13 +123,19 @@ const EventList = ({ events, loading, error, onRefresh }) => {
             </div>
             
             <div>
-              <Link to={`/event/${event.id}`} className="btn">
+              <button 
+                onClick={() => onViewEvent && onViewEvent(event.id)} 
+                className="btn"
+              >
                 View Details
-              </Link>
+              </button>
               {canEdit() && (
-                <Link to={`/edit/${event.id}`} className="btn">
+                <button 
+                  onClick={() => onEditEvent && onEditEvent(event.id)} 
+                  className="btn"
+                >
                   Edit
-                </Link>
+                </button>
               )}
               {canDelete() && (
                 <button 

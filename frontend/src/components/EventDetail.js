@@ -1,11 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getEvent, deleteEvent, updateEvent } from '../services/eventService';
 import { useUser } from '../contexts/UserContext';
 
-const EventDetail = ({ onRefresh }) => {
-  const { id } = useParams();
-  const navigate = useNavigate();
+const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
   const { canEdit, canDelete, user, isAuthenticated } = useUser();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -33,6 +30,8 @@ const EventDetail = ({ onRefresh }) => {
   ];
 
   const loadEvent = useCallback(async (isAutoSync = false) => {
+    if (!eventId) return;
+    
     try {
       if (isAutoSync) {
         setIsAutoSyncing(true);
@@ -40,7 +39,7 @@ const EventDetail = ({ onRefresh }) => {
         setLoading(true);
       }
       
-      const eventData = await getEvent(id);
+      const eventData = await getEvent(eventId);
       setEvent(eventData);
       setError(null);
       
@@ -59,7 +58,7 @@ const EventDetail = ({ onRefresh }) => {
         setLoading(false);
       }
     }
-  }, [id]);
+  }, [eventId]);
 
   useEffect(() => {
     loadEvent();
@@ -91,9 +90,11 @@ const EventDetail = ({ onRefresh }) => {
       
     if (window.confirm(confirmMessage)) {
       try {
-        await deleteEvent(id);
+        await deleteEvent(eventId);
         onRefresh();
-        navigate('/');
+        if (onBack) {
+          onBack(); // Return to events list
+        }
       } catch (error) {
         alert('Failed to delete event. Please try again.');
         console.error('Delete error:', error);
@@ -168,7 +169,7 @@ const EventDetail = ({ onRefresh }) => {
         attendees: [...event.attendees, attendeeInfo]
       };
 
-      await updateEvent(id, updatedEvent);
+      await updateEvent(eventId, updatedEvent);
       setEvent(updatedEvent);
       setShowJoinForm(false);
       setGuestInfo({ name: '', team: '', phone: '' });
@@ -197,7 +198,7 @@ const EventDetail = ({ onRefresh }) => {
           attendees: event.attendees.filter(attendee => attendee.phone !== userPhone)
         };
 
-        await updateEvent(id, updatedEvent);
+        await updateEvent(eventId, updatedEvent);
         setEvent(updatedEvent);
         onRefresh();
         
@@ -257,9 +258,9 @@ const EventDetail = ({ onRefresh }) => {
       <div className="error">
         {error}
         <div style={{ marginTop: '1rem' }}>
-          <Link to="/" className="btn">
+          <button onClick={onBack} className="btn">
             Back to Events
-          </Link>
+          </button>
         </div>
       </div>
     );
@@ -270,7 +271,7 @@ const EventDetail = ({ onRefresh }) => {
       <div className="card">
         <h2>Event Not Found</h2>
         <p>The event you're looking for doesn't exist.</p>
-        <Link to="/" className="btn">Back to Events</Link>
+        <button onClick={onBack} className="btn">Back to Events</button>
       </div>
     );
   }
@@ -278,7 +279,7 @@ const EventDetail = ({ onRefresh }) => {
   return (
     <div>
       <div style={{ marginBottom: '2rem' }}>
-        <Link to="/" className="btn">← Back to Events</Link>
+        <button onClick={onBack} className="btn">← Back to Events</button>
       </div>
 
       <div className="card">
@@ -320,9 +321,9 @@ const EventDetail = ({ onRefresh }) => {
 
             {/* Admin Actions */}
             {canEdit() && (
-              <Link to={`/edit/${event.id}`} className="btn">
+              <button onClick={() => onEdit && onEdit()} className="btn">
                 ✏️ Edit
-              </Link>
+              </button>
             )}
             {canDelete() && (
               <button 

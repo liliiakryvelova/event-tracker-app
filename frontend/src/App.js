@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import EventList from './components/EventList';
 import EventForm from './components/EventForm';
 import EventDetail from './components/EventDetail';
@@ -13,6 +12,11 @@ const AppContent = () => {
   const [events, setEvents] = useState([]);
   const [eventsLoading, setEventsLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // State for controlling what section is visible
+  const [activeView, setActiveView] = useState('events'); // 'events', 'login', 'create', 'edit', 'detail'
+  const [editingEventId, setEditingEventId] = useState(null);
+  const [viewingEventId, setViewingEventId] = useState(null);
 
   const fetchEvents = async () => {
     try {
@@ -37,80 +41,127 @@ const AppContent = () => {
     fetchEvents();
   };
 
+  // Navigation handlers
+  const showEvents = () => {
+    setActiveView('events');
+    setEditingEventId(null);
+    setViewingEventId(null);
+  };
+
+  const showLogin = () => {
+    setActiveView('login');
+  };
+
+  const showCreateEvent = () => {
+    setActiveView('create');
+  };
+
+  const showEditEvent = (eventId) => {
+    setEditingEventId(eventId);
+    setActiveView('edit');
+  };
+
+  const showEventDetail = (eventId) => {
+    setViewingEventId(eventId);
+    setActiveView('detail');
+  };
+
+  const handleFormSuccess = () => {
+    refreshEvents();
+    showEvents(); // Return to events list after successful form submission
+  };
+
+  const handleLoginSuccess = () => {
+    showEvents(); // Return to events list after successful login
+  };
+
   if (loading) {
     return <div className="loading">Loading...</div>;
   }
 
   return (
-    <Router>
-      <div className="App">
-        <Header />
+    <div className="App">
+      <Header />
 
-        <nav className="nav">
-          <div className="container">
-            <ul>
-              <li>
-                <Link to="/"><span>🏐 All Events</span></Link>
-              </li>
-              {canCreate() && (
-                <li>
-                  <Link to="/create"><span>⚡ Create Event</span></Link>
-                </li>
-              )}
-            </ul>
-          </div>
-        </nav>
-
+      <nav className="nav">
         <div className="container">
-          <Routes>
-            <Route 
-              path="/" 
-              element={
-                <EventList 
-                  events={events} 
-                  loading={eventsLoading} 
-                  error={error}
-                  onRefresh={refreshEvents}
-                />
-              } 
-            />
-            <Route 
-              path="/login" 
-              element={<Login />} 
-            />
-            <Route 
-              path="/create" 
-              element={
-                <EventForm 
-                  onSuccess={refreshEvents}
-                />
-              } 
-            />
-            <Route 
-              path="/edit/:id" 
-              element={
-                <EventForm 
-                  onSuccess={refreshEvents}
-                />
-              } 
-            />
-            <Route 
-              path="/event/:id" 
-              element={
-                <EventDetail 
-                  onRefresh={refreshEvents}
-                />
-              } 
-            />
-            {/* Catch-all route: redirect any invalid URL to home */}
-            <Route 
-              path="*" 
-              element={<Navigate to="/" replace />} 
-            />
-          </Routes>
+          <ul>
+            <li>
+              <button 
+                onClick={showEvents}
+                className={`nav-button ${activeView === 'events' ? 'active' : ''}`}
+              >
+                <span>🏐 All Events</span>
+              </button>
+            </li>
+            <li>
+              <button 
+                onClick={showLogin}
+                className={`nav-button ${activeView === 'login' ? 'active' : ''}`}
+              >
+                <span>👤 Admin Login</span>
+              </button>
+            </li>
+            {canCreate() && (
+              <li>
+                <button 
+                  onClick={showCreateEvent}
+                  className={`nav-button ${activeView === 'create' ? 'active' : ''}`}
+                >
+                  <span>⚡ Create Event</span>
+                </button>
+              </li>
+            )}
+          </ul>
         </div>
+      </nav>
+
+      <div className="container">
+        {/* Events List Section */}
+        {activeView === 'events' && (
+          <EventList 
+            events={events} 
+            loading={eventsLoading} 
+            error={error}
+            onRefresh={refreshEvents}
+            onEditEvent={showEditEvent}
+            onViewEvent={showEventDetail}
+          />
+        )}
+
+        {/* Login Section */}
+        {activeView === 'login' && (
+          <Login onSuccess={handleLoginSuccess} />
+        )}
+
+        {/* Create Event Section */}
+        {activeView === 'create' && (
+          <EventForm 
+            onSuccess={handleFormSuccess}
+            onCancel={showEvents}
+          />
+        )}
+
+        {/* Edit Event Section */}
+        {activeView === 'edit' && editingEventId && (
+          <EventForm 
+            eventId={editingEventId}
+            onSuccess={handleFormSuccess}
+            onCancel={showEvents}
+          />
+        )}
+
+        {/* Event Detail Section */}
+        {activeView === 'detail' && viewingEventId && (
+          <EventDetail 
+            eventId={viewingEventId}
+            onRefresh={refreshEvents}
+            onEdit={() => showEditEvent(viewingEventId)}
+            onBack={showEvents}
+          />
+        )}
       </div>
-    </Router>
+    </div>
   );
 };
 
