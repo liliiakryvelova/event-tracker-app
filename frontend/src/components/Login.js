@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useUser } from '../contexts/UserContext';
 
 const Login = () => {
   const { login } = useUser();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: '',
     password: ''
@@ -25,7 +27,10 @@ const Login = () => {
 
     const result = login(formData.username, formData.password);
     
-    if (!result.success) {
+    if (result.success) {
+      // Redirect to events page after successful login
+      navigate('/');
+    } else {
       setError(result.message);
     }
     
