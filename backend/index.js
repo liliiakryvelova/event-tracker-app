@@ -263,17 +263,41 @@ app.get('/api/debug/requests', (req, res) => {
   });
 });
 
+// Debug route to check user authentication status
+app.get('/api/debug/users', async (req, res) => {
+  try {
+    const usersCount = await pool.query('SELECT COUNT(*) FROM users');
+    const adminUsers = await pool.query('SELECT username, role, full_name, created_at FROM users WHERE role = $1', ['admin']);
+    
+    res.json({
+      message: 'User debug information',
+      totalUsers: parseInt(usersCount.rows[0].count),
+      adminUsers: adminUsers.rows,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Failed to check users',
+      details: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Database status endpoint
 app.get('/api/status', async (req, res) => {
   try {
-    const events = await readEvents();
-    const stats = await fs.stat(EVENTS_DB_PATH);
+    // Get total counts from database
+    const eventsCount = await pool.query('SELECT COUNT(*) FROM events');
+    const attendeesCount = await pool.query('SELECT COUNT(*) FROM attendees');
+    const usersCount = await pool.query('SELECT COUNT(*) FROM users');
     
     res.json({
       status: 'OK',
-      totalEvents: events.length,
-      totalAttendees: events.reduce((total, event) => total + (event.attendees?.length || 0), 0),
-      lastModified: stats.mtime,
+      database: 'PostgreSQL',
+      totalEvents: parseInt(eventsCount.rows[0].count),
+      totalAttendees: parseInt(attendeesCount.rows[0].count),
+      totalUsers: parseInt(usersCount.rows[0].count),
       timestamp: new Date().toISOString()
     });
   } catch (error) {
@@ -342,10 +366,13 @@ app.use('*', (req, res) => {
       'POST /api/events',
       'PUT /api/events/:id',
       'DELETE /api/events/:id',
+      'POST /api/auth/login',
+      'POST /api/auth/change-password',
       'GET /api/health',
       'GET /api/status',
       'GET /api/debug/frontend',
       'GET /api/debug/requests',
+      'GET /api/debug/users',
       'GET /api/db-integrity'
     ],
     frontend: 'https://event-tracker-frontend-qv6e.onrender.com',
