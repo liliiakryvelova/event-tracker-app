@@ -7,6 +7,17 @@ const { initializeDatabase, dbQueries } = require('./database');
 const app = express();
 const PORT = process.env.PORT || 8000;
 
+// Security headers middleware
+app.use((req, res, next) => {
+  // Security headers to improve browser trust
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Content-Security-Policy', "default-src 'self' 'unsafe-inline'; connect-src 'self' https:; img-src 'self' data: https:;");
+  next();
+});
+
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
