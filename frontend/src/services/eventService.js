@@ -14,20 +14,37 @@ const api = axios.create({
 // Event service functions
 export const getEvents = async () => {
   try {
+    console.log('🔍 API_BASE_URL:', API_BASE_URL);
+    console.log('🚀 Fetching events from:', `${API_BASE_URL}/events`);
     const response = await api.get('/events');
+    console.log('✅ Events response:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Error fetching events:', error);
+    console.error('❌ Error fetching events:', error);
+    console.error('❌ Error details:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+      url: error.config?.url
+    });
     throw error;
   }
 };
 
 export const getEvent = async (id) => {
   try {
+    console.log('🔍 Fetching event:', id, 'from:', `${API_BASE_URL}/events/${id}`);
     const response = await api.get(`/events/${id}`);
+    console.log('✅ Event response:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Error fetching event:', error);
+    console.error('❌ Error fetching event:', error);
+    console.error('❌ Error details:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+      url: error.config?.url
+    });
     throw error;
   }
 };
