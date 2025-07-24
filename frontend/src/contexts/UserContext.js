@@ -12,7 +12,7 @@ export const useUser = () => {
 
 // API configuration
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://event-tracker-backend.onrender.com/api'
+  ? 'https://event-tracker-app-u25w.onrender.com/api'
   : 'http://localhost:8000/api';
 
 export const UserProvider = ({ children }) => {

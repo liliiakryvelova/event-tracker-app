@@ -28,7 +28,9 @@ app.use((req, res, next) => {
 app.use(cors({
   origin: [
     'https://event-tracker-frontend-qv6e.onrender.com',
-    'http://localhost:3000' // For local development
+    'https://event-tracker-app-u25w.onrender.com', // Current backend URL
+    'http://localhost:3000', // For local development
+    'http://localhost:3001' // Alternative local port
   ],
   credentials: true
 }));
