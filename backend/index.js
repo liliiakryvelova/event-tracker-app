@@ -27,8 +27,7 @@ app.use((req, res, next) => {
 // CORS configuration for separate frontend deployment
 app.use(cors({
   origin: [
-    'https://catchball-seattle.onrender.com',
-    'https://event-tracker-frontend-qv6e.onrender.com', // Keep old URL for transition
+    'https://event-tracker-frontend-qv6e.onrender.com',
     'http://localhost:3000' // For local development
   ],
   credentials: true
@@ -92,10 +91,10 @@ app.get('/', (req, res) => {
       'GET /api/health': 'Health check',
       'GET /api/status': 'Database status'
     },
-    frontend: 'https://catchball-seattle.onrender.com',
+    frontend: 'https://event-tracker-frontend-qv6e.onrender.com',
     backend: 'This API service',
     documentation: 'Visit the endpoints above to interact with the API',
-    note: 'Frontend is deployed separately as a static site'
+    note: 'Monolithic deployment - backend serves frontend build files'
   });
 });
 
@@ -187,11 +186,10 @@ app.get('/api/health', (req, res) => {
 // Debug route to check frontend build status
 app.get('/api/debug/frontend', (req, res) => {
   res.json({
-    message: 'Frontend is deployed separately as a static site',
-    frontendUrl: 'https://catchball-seattle.onrender.com',
-    backendUrl: 'https://event-tracker-backend.onrender.com',
-    deploymentType: 'Separate frontend and backend services',
-    note: 'Backend does not serve static files - frontend is deployed independently',
+    message: 'Monolithic deployment - backend serves frontend build files',
+    frontendUrl: 'https://event-tracker-frontend-qv6e.onrender.com',
+    deploymentType: 'Single service - backend serves React build',
+    note: 'Backend serves static files from frontend/build directory',
     timestamp: new Date().toISOString()
   });
 });

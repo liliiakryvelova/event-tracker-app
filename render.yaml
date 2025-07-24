@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: catchball-seattle
+    name: event-tracker-frontend-qv6e
     runtime: node
     buildCommand: |
       cd frontend && npm ci && npm run build &&
