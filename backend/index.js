@@ -31,7 +31,14 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Serve static files from frontend build
 const frontendPath = path.join(__dirname, '../frontend/build');
+console.log('Frontend build path:', frontendPath);
 app.use(express.static(frontendPath));
+
+// Add explicit static file serving with proper headers
+app.use(express.static(frontendPath, {
+  maxAge: '1d',
+  etag: false
+}));
 
 // Validation function for event data
 const validateEventData = (eventData) => {
@@ -168,6 +175,37 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+// Debug route to check frontend build status
+app.get('/api/debug/frontend', (req, res) => {
+  const fs = require('fs');
+  const indexPath = path.join(frontendPath, 'index.html');
+  
+  try {
+    const exists = fs.existsSync(frontendPath);
+    const indexExists = fs.existsSync(indexPath);
+    let files = [];
+    
+    if (exists) {
+      files = fs.readdirSync(frontendPath);
+    }
+    
+    res.json({
+      frontendPath: frontendPath,
+      frontendDirExists: exists,
+      indexHtmlExists: indexExists,
+      indexPath: indexPath,
+      files: files.slice(0, 20), // Limit to first 20 files
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: error.message,
+      frontendPath: frontendPath,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Database status endpoint
 app.get('/api/status', async (req, res) => {
   try {
@@ -237,7 +275,28 @@ app.get('/api/db-integrity', async (req, res) => {
 
 // Catch-all handler: send back React's index.html file for any non-API routes
 app.get('*', (req, res) => {
-  res.sendFile(path.join(frontendPath, 'index.html'));
+  // Don't handle API routes here
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ error: 'API endpoint not found' });
+  }
+  
+  const indexPath = path.join(frontendPath, 'index.html');
+  console.log(`Serving React app for route: ${req.path}`);
+  console.log(`Index.html path: ${indexPath}`);
+  
+  // Check if index.html exists
+  const fs = require('fs');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    console.error(`index.html not found at: ${indexPath}`);
+    res.status(404).send(`
+      <h1>Frontend Build Not Found</h1>
+      <p>The React app build files are not available.</p>
+      <p>Expected path: ${indexPath}</p>
+      <p>Please run 'npm run build' in the frontend directory.</p>
+    `);
+  }
 });
 
 // Initialize database and start server

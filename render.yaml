@@ -1,20 +1,8 @@
 services:
   - type: web
-    name: event-tracker-backend
-    runtime: node
-    buildCommand: npm install
-    startCommand: npm start
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: PORT
-        value: 8000
-    healthCheckPath: /api/health
-    
-  - type: web
     name: event-tracker-frontend
     runtime: static
-    buildCommand: cd frontend && npm install && npm run build
+    buildCommand: cd frontend && npm ci && npm run build
     staticPublishPath: ./frontend/build
     routes:
       - type: rewrite
@@ -36,3 +24,15 @@ services:
       - path: /*
         name: Referrer-Policy
         value: strict-origin-when-cross-origin
+        
+  - type: web
+    name: event-tracker-backend
+    runtime: node
+    buildCommand: npm ci
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 8000
+    healthCheckPath: /api/health
