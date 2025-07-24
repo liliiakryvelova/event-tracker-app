@@ -75,8 +75,8 @@ const validateEventData = (eventData) => {
 
 // Routes
 
-// Root route - API information
-app.get('/', (req, res) => {
+// API information route (moved to /api/)
+app.get('/api/', (req, res) => {
   res.json({
     name: 'Event Tracker API',
     version: '1.0.0',
@@ -272,15 +272,15 @@ app.get('/api/db-integrity', async (req, res) => {
   }
 });
 
-// API-only routes - serve React app for non-API routes (monolithic deployment)
-// Catch-all handler: send back React's index.html file for any non-API routes
+// Catch-all handler: serve React app for ALL non-API routes (including root)
 app.get('*', (req, res) => {
-  // Don't handle API routes here
+  // Only handle API routes with API responses
   if (req.path.startsWith('/api/')) {
     return res.status(404).json({ error: 'API endpoint not found' });
   }
   
-  // For React Router, serve index.html for all frontend routes
+  // For ALL other routes (including /, /create, /login, /event/123, etc.)
+  // Serve index.html and let React Router handle the routing
   const indexPath = path.join(frontendPath, 'index.html');
   console.log(`Serving React app for route: ${req.path}`);
   
@@ -291,9 +291,15 @@ app.get('*', (req, res) => {
     // Always serve index.html and let React Router handle the routing
     res.sendFile(indexPath);
   } else {
-    console.error(`❌ index.html not found at: ${indexPath}, redirecting to home`);
-    // If frontend build is missing, redirect to home page instead of showing error
-    res.redirect(301, '/');
+    console.error(`❌ index.html not found at: ${indexPath}`);
+    res.status(500).send(`
+      <h1>Frontend Build Not Found</h1>
+      <p>The React app build files are not available.</p>
+      <p><strong>Expected path:</strong> ${indexPath}</p>
+      <p>Please check the build process.</p>
+      <hr>
+      <p><a href="/api/debug/frontend">Debug: Check frontend build status</a></p>
+    `);
   }
 });
 
