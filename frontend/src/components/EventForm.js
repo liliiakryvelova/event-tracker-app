@@ -34,10 +34,17 @@ const EventForm = ({ eventId, onSuccess, onCancel }) => {
 
   useEffect(() => {
     const loadData = async () => {
+      console.log('📝 EventForm: Loading data...');
+      console.log('📝 EventForm: eventId:', eventId);
+      console.log('📝 EventForm: isEditing:', isEditing);
+      
       if (isEditing && eventId) {
         try {
           setLoading(true);
+          console.log('📝 EventForm: Fetching event for editing...');
           const event = await getEvent(eventId);
+          console.log('📝 EventForm: Loaded event data:', event);
+          
           setFormData({
             title: event.title || '',
             description: event.description || '',
@@ -48,7 +55,9 @@ const EventForm = ({ eventId, onSuccess, onCancel }) => {
             status: event.status || 'planned',
             maxAttendees: event.maxAttendees || 20
           });
+          console.log('📝 EventForm: Form data set successfully');
         } catch (error) {
+          console.error('📝 EventForm: Failed to load event:', error);
           setError('Failed to load event');
         } finally {
           setLoading(false);

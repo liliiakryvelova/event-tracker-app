@@ -434,7 +434,18 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
 
             {/* Admin Actions */}
             {canEdit() && (
-              <button onClick={() => onEdit && onEdit()} className="btn">
+              <button 
+                onClick={() => {
+                  console.log('✏️ Edit button clicked for event:', eventId);
+                  console.log('✏️ onEdit callback:', onEdit);
+                  if (onEdit) {
+                    onEdit();
+                  } else {
+                    console.error('❌ onEdit callback is not defined');
+                  }
+                }} 
+                className="btn"
+              >
                 ✏️ Edit
               </button>
             )}
