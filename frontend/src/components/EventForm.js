@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { createEvent, updateEvent, getEvent } from '../services/eventService';
+import { createEvent, updateEvent, getEvent, getEvents } from '../services/eventService';
 
 const EventForm = ({ onSuccess }) => {
   const navigate = useNavigate();
@@ -15,40 +15,47 @@ const EventForm = ({ onSuccess }) => {
     location: '',
     attendees: [],
     status: 'planned',
-    maxAttendees: null // Add attendee limit field
+    maxAttendees: 20 // Default to 20 attendees max
   });
 
   const [attendeeInput, setAttendeeInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [eventCount, setEventCount] = useState(0);
 
   useEffect(() => {
-    if (isEditing) {
-      loadEvent();
-    }
+    const loadData = async () => {
+      if (isEditing) {
+        try {
+          setLoading(true);
+          const event = await getEvent(id);
+          setFormData({
+            title: event.title || '',
+            description: event.description || '',
+            date: event.date || '',
+            time: event.time || '',
+            location: event.location || '',
+            attendees: event.attendees || [],
+            status: event.status || 'planned',
+            maxAttendees: event.maxAttendees || 20
+          });
+        } catch (error) {
+          setError('Failed to load event');
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        try {
+          const events = await getEvents();
+          setEventCount(events.length);
+        } catch (error) {
+          console.error('Failed to check event count:', error);
+        }
+      }
+    };
+    loadData();
   }, [id, isEditing]);
-
-  const loadEvent = async () => {
-    try {
-      setLoading(true);
-      const event = await getEvent(id);
-      setFormData({
-        title: event.title || '',
-        description: event.description || '',
-        date: event.date || '',
-        time: event.time || '',
-        location: event.location || '',
-        attendees: event.attendees || [],
-        status: event.status || 'planned',
-        maxAttendees: event.maxAttendees || null
-      });
-    } catch (error) {
-      setError('Failed to load event');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -82,11 +89,31 @@ const EventForm = ({ onSuccess }) => {
     setSuccess(null);
 
     try {
+      // Check event limit for new events
+      if (!isEditing && eventCount >= 3) {
+        setError('Cannot create more events. Maximum of 3 events allowed.');
+        setLoading(false);
+        return;
+      }
+
+      // Validate max attendees
+      if (formData.maxAttendees && formData.maxAttendees > 20) {
+        setError('Maximum attendees cannot exceed 20 people.');
+        setLoading(false);
+        return;
+      }
+
+      // Ensure maxAttendees is set to 20 if not specified
+      const eventData = {
+        ...formData,
+        maxAttendees: formData.maxAttendees || 20
+      };
+
       if (isEditing) {
-        await updateEvent(id, formData);
+        await updateEvent(id, eventData);
         setSuccess('Event updated successfully!');
       } else {
-        await createEvent(formData);
+        await createEvent(eventData);
         setSuccess('Event created successfully!');
       }
       
@@ -112,7 +139,26 @@ const EventForm = ({ onSuccess }) => {
 
   return (
     <div className="card">
-      <h2>{isEditing ? '✏️ Edit Event' : '➕ Create New Event'}</h2>
+      <h2>{isEditing ? 'Edit Event' : 'Create New Event'}</h2>
+      
+      {!isEditing && eventCount >= 3 && (
+        <div className="error" style={{ marginBottom: '1rem' }}>
+          ⚠️ Event limit reached! You cannot create more than 3 events. Please delete an existing event first.
+        </div>
+      )}
+      
+      {!isEditing && eventCount < 3 && (
+        <div style={{ 
+          background: '#e8f5e8', 
+          color: '#2e7d32', 
+          padding: '0.75rem', 
+          borderRadius: '6px', 
+          marginBottom: '1rem',
+          fontSize: '0.9rem'
+        }}>
+          📊 Events: {eventCount}/3 | Each event can have up to 20 attendees
+        </div>
+      )}
       
       {error && <div className="error">{error}</div>}
       {success && <div className="success">{success}</div>}
@@ -183,7 +229,7 @@ const EventForm = ({ onSuccess }) => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="maxAttendees">👥 Attendee Limit</label>
+          <label htmlFor="maxAttendees">👥 Attendee Limit (Max: 20)</label>
           <input
             type="number"
             id="maxAttendees"
@@ -191,11 +237,11 @@ const EventForm = ({ onSuccess }) => {
             value={formData.maxAttendees || ''}
             onChange={handleChange}
             min="1"
-            max="1000"
-            placeholder="No limit (leave empty for unlimited)"
+            max="20"
+            placeholder="Maximum 20 attendees"
           />
           <small style={{ color: '#666', fontSize: '0.8rem', display: 'block', marginTop: '0.25rem' }}>
-            Set maximum number of attendees (optional). Leave empty for unlimited capacity.
+            Set maximum number of attendees (1-20). Default is 20 if left empty.
           </small>
         </div>
 
@@ -278,9 +324,9 @@ const EventForm = ({ onSuccess }) => {
           <button
             type="submit"
             className="btn btn-success"
-            disabled={loading}
+            disabled={loading || (!isEditing && eventCount >= 3)}
           >
-            {loading ? 'Saving...' : (isEditing ? '💾 Update Event' : '➕ Create Event')}
+            {loading ? 'Saving...' : (isEditing ? 'Update Event' : eventCount >= 3 ? 'Event Limit Reached' : 'Create Event')}
           </button>
           
           <button
@@ -289,7 +335,7 @@ const EventForm = ({ onSuccess }) => {
             onClick={handleCancel}
             disabled={loading}
           >
-            ❌ Cancel
+            Cancel
           </button>
         </div>
       </form>

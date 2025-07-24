@@ -4,7 +4,7 @@ import { deleteEvent } from '../services/eventService';
 import { useUser } from '../contexts/UserContext';
 
 const EventList = ({ events, loading, error, onRefresh }) => {
-  const { canEdit, canDelete, isAuthenticated } = useUser();
+  const { canEdit, canDelete, canCreate, isAuthenticated } = useUser();
   
   const handleDelete = async (id, title) => {
     if (window.confirm(`Are you sure you want to delete "${title}"?`)) {
@@ -50,19 +50,44 @@ const EventList = ({ events, loading, error, onRefresh }) => {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h2>📅 All Events ({events.length})</h2>
+        <h2>All Events ({events.length}/3)</h2>
         <div>
           {!isAuthenticated() && (
             <span style={{ fontSize: '0.9rem', color: '#666' }}>
-              👤 You're browsing as a guest - you can view and join events
+              You're browsing as a guest - you can view and join events
+            </span>
+          )}
+          {events.length >= 3 && canCreate() && (
+            <span style={{ fontSize: '0.9rem', color: '#e74c3c', fontWeight: 'bold' }}>
+              ⚠️ Event limit reached (3/3)
             </span>
           )}
         </div>
       </div>
 
-      <div className="events-grid">
+      <div 
+        className="events-grid" 
+        style={{
+          display: 'grid',
+          gridTemplateColumns: events.length === 1 
+            ? '1fr' 
+            : events.length === 2 
+              ? 'repeat(2, 1fr)' 
+              : 'repeat(auto-fit, minmax(350px, 1fr))',
+          gap: '1.5rem',
+          marginTop: '2rem',
+          justifyItems: events.length === 1 ? 'center' : 'stretch'
+        }}
+      >
         {events.map((event) => (
-          <div key={event.id} className="event-card">
+          <div 
+            key={event.id} 
+            className="event-card"
+            style={{
+              maxWidth: events.length === 1 ? '500px' : 'none',
+              width: '100%'
+            }}
+          >
             <div className="event-title">{event.title}</div>
             
             <div className="event-meta">
@@ -70,7 +95,12 @@ const EventList = ({ events, loading, error, onRefresh }) => {
               <br />
               📍 {event.location}
               <br />
-              👥 {event.attendees ? event.attendees.length : 0} attendees
+              👥 {event.attendees ? event.attendees.length : 0}/{event.maxAttendees || 20} attendees
+              {event.maxAttendees && event.attendees && event.attendees.length >= event.maxAttendees && (
+                <span style={{ color: '#e74c3c', fontWeight: 'bold', marginLeft: '0.5rem' }}>
+                  (FULL)
+                </span>
+              )}
             </div>
             
             <div className="event-description">
@@ -83,11 +113,11 @@ const EventList = ({ events, loading, error, onRefresh }) => {
             
             <div>
               <Link to={`/event/${event.id}`} className="btn">
-                👁️ View
+                View Details
               </Link>
               {canEdit() && (
                 <Link to={`/edit/${event.id}`} className="btn">
-                  ✏️ Edit
+                  Edit
                 </Link>
               )}
               {canDelete() && (
@@ -95,7 +125,7 @@ const EventList = ({ events, loading, error, onRefresh }) => {
                   className="btn btn-danger"
                   onClick={() => handleDelete(event.id, event.title)}
                 >
-                  🗑️ Delete
+                  Delete
                 </button>
               )}
             </div>

@@ -155,9 +155,10 @@ const EventDetail = ({ onRefresh }) => {
         return;
       }
 
-      // Check attendee limit
-      if (event.maxAttendees && event.attendees.length >= event.maxAttendees) {
-        alert(`Sorry, this event has reached its maximum capacity of ${event.maxAttendees} attendees.`);
+      // Check attendee limit (enforce 20 person maximum)
+      const maxAllowed = Math.min(event.maxAttendees || 20, 20);
+      if (event.attendees.length >= maxAllowed) {
+        alert(`Sorry, this event has reached its maximum capacity of ${maxAllowed} attendees.`);
         setJoinLoading(false);
         return;
       }
@@ -300,20 +301,20 @@ const EventDetail = ({ onRefresh }) => {
                 <button 
                   className="btn btn-success"
                   onClick={() => handleJoinEvent({ preventDefault: () => {} })}
-                  disabled={event.maxAttendees && event.attendees.length >= event.maxAttendees}
-                  title={event.maxAttendees && event.attendees.length >= event.maxAttendees ? 'Event is full' : 'Join this event'}
+                  disabled={event.attendees.length >= Math.min(event.maxAttendees || 20, 20)}
+                  title={event.attendees.length >= Math.min(event.maxAttendees || 20, 20) ? 'Event is full' : 'Join this event'}
                 >
-                  {event.maxAttendees && event.attendees.length >= event.maxAttendees ? '🚫 Event Full' : '➕ Join Event'}
+                  {event.attendees.length >= Math.min(event.maxAttendees || 20, 20) ? 'Event Full' : 'Join Event'}
                 </button>
               )
             ) : (
               <button 
                 className="btn btn-success"
                 onClick={() => setShowJoinForm(true)}
-                disabled={event.maxAttendees && event.attendees.length >= event.maxAttendees}
-                title={event.maxAttendees && event.attendees.length >= event.maxAttendees ? 'Event is full' : 'Join this event'}
+                disabled={event.attendees.length >= Math.min(event.maxAttendees || 20, 20)}
+                title={event.attendees.length >= Math.min(event.maxAttendees || 20, 20) ? 'Event is full' : 'Join this event'}
               >
-                {event.maxAttendees && event.attendees.length >= event.maxAttendees ? '🚫 Event Full' : '➕ Join Event'}
+                {event.attendees.length >= Math.min(event.maxAttendees || 20, 20) ? 'Event Full' : 'Join Event'}
               </button>
             )}
 
@@ -433,22 +434,24 @@ const EventDetail = ({ onRefresh }) => {
             <div className="form-group">
               <label>👥 Capacity:</label>
               <p style={{ marginTop: '0.5rem' }}>
-                {event.maxAttendees ? (
-                  <span>
-                    <strong>{event.attendees?.length || 0} / {event.maxAttendees}</strong> attendees
-                    {event.maxAttendees - (event.attendees?.length || 0) > 0 ? (
-                      <span style={{ color: '#2e7d32', marginLeft: '0.5rem' }}>
-                        ({event.maxAttendees - (event.attendees?.length || 0)} spots remaining)
-                      </span>
-                    ) : (
-                      <span style={{ color: '#d32f2f', marginLeft: '0.5rem' }}>
-                        (Event is full)
-                      </span>
-                    )}
-                  </span>
-                ) : (
-                  <span>Unlimited capacity</span>
-                )}
+                {(() => {
+                  const maxAllowed = Math.min(event.maxAttendees || 20, 20);
+                  const currentCount = event.attendees?.length || 0;
+                  return (
+                    <span>
+                      <strong>{currentCount} / {maxAllowed}</strong> attendees
+                      {maxAllowed - currentCount > 0 ? (
+                        <span style={{ color: '#2e7d32', marginLeft: '0.5rem' }}>
+                          ({maxAllowed - currentCount} spots remaining)
+                        </span>
+                      ) : (
+                        <span style={{ color: '#d32f2f', marginLeft: '0.5rem' }}>
+                          (Event is full)
+                        </span>
+                      )}
+                    </span>
+                  );
+                })()}
               </p>
             </div>
           </div>
@@ -457,7 +460,7 @@ const EventDetail = ({ onRefresh }) => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
               <h3 style={{ margin: 0 }}>
                 👥 Live Attendees ({event.attendees ? event.attendees.length : 0}
-                {event.maxAttendees ? `/${event.maxAttendees}` : ''})
+                /{Math.min(event.maxAttendees || 20, 20)})
               </h3>
               <span style={{
                 background: '#4caf50',
@@ -483,7 +486,7 @@ const EventDetail = ({ onRefresh }) => {
                   🔄 SYNC
                 </span>
               )}
-              {event.maxAttendees && event.attendees && event.attendees.length >= event.maxAttendees && (
+              {event.attendees && Math.min(event.maxAttendees || 20, 20) && event.attendees.length >= Math.min(event.maxAttendees || 20, 20) && (
                 <span style={{
                   background: '#ff5722',
                   color: 'white',
@@ -508,18 +511,16 @@ const EventDetail = ({ onRefresh }) => {
                 color: '#666'
               }}>
                 <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                  <span>📊 Total: {event.attendees.length}{event.maxAttendees ? `/${event.maxAttendees}` : ''}</span>
-                  {event.maxAttendees && (
-                    <span style={{ 
-                      color: event.attendees.length >= event.maxAttendees ? '#d32f2f' : '#2e7d32',
-                      fontWeight: 'bold'
-                    }}>
-                      🎯 {event.maxAttendees - event.attendees.length > 0 
-                        ? `${event.maxAttendees - event.attendees.length} spots left`
-                        : 'Event is full'
-                      }
-                    </span>
-                  )}
+                  <span>📊 Total: {event.attendees.length}/{Math.min(event.maxAttendees || 20, 20)}</span>
+                  <span style={{ 
+                    color: event.attendees.length >= Math.min(event.maxAttendees || 20, 20) ? '#d32f2f' : '#2e7d32',
+                    fontWeight: 'bold'
+                  }}>
+                    🎯 {Math.min(event.maxAttendees || 20, 20) - event.attendees.length > 0 
+                      ? `${Math.min(event.maxAttendees || 20, 20) - event.attendees.length} spots left`
+                      : 'Event is full'
+                    }
+                  </span>
                   <span>🕐 Latest: {formatJoinTime(event.attendees.reduce((latest, attendee) => {
                     if (!attendee.joinedAt) return latest;
                     return !latest || new Date(attendee.joinedAt) > new Date(latest) ? attendee.joinedAt : latest;
