@@ -29,46 +29,68 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
     'Mama Mia'
   ];
 
-  // Calculate event status based on date and time
+    // Calculate event status based on date and time
   const getEventStatus = useCallback((event) => {
-    if (!event?.date || !event?.time) {
-      console.log('⏰ Status Debug - Missing date or time:', { date: event?.date, time: event?.time });
-      return 'scheduled';
-    }
-    
-    const now = new Date();
-    const eventDateTime = new Date(`${event.date}T${event.time}`);
-    
-    // Debug logging
-    console.log('⏰ Status Debug for event:', event.title);
-    console.log('⏰ Current time:', now.toISOString());
-    console.log('⏰ Event date string:', event.date);
-    console.log('⏰ Event time string:', event.time);
-    console.log('⏰ Parsed event datetime:', eventDateTime.toISOString());
-    console.log('⏰ Is eventDateTime valid?', !isNaN(eventDateTime.getTime()));
-    
-    // Check if the parsed date is valid
-    if (isNaN(eventDateTime.getTime())) {
-      console.log('⏰ Invalid date, defaulting to scheduled');
-      return 'scheduled';
-    }
-    
-    // Add 2 hours duration to determine when event ends
-    const eventEndTime = new Date(eventDateTime.getTime() + (2 * 60 * 60 * 1000));
-    
-    console.log('⏰ Event end time:', eventEndTime.toISOString());
-    console.log('⏰ Comparison: now < eventDateTime?', now < eventDateTime);
-    console.log('⏰ Comparison: now >= eventDateTime && now < eventEndTime?', now >= eventDateTime && now < eventEndTime);
-    
-    if (now < eventDateTime) {
-      console.log('⏰ Status: SCHEDULED');
-      return 'scheduled'; // Event hasn't started yet
-    } else if (now >= eventDateTime && now < eventEndTime) {
-      console.log('⏰ Status: HAPPENING');
-      return 'happening'; // Event is currently happening
-    } else {
-      console.log('⏰ Status: FINISHED');
-      return 'finished'; // Event has finished
+    try {
+      if (!event?.date || !event?.time) {
+        console.warn('Missing date or time for event:', event);
+        return 'scheduled';
+      }
+      
+      // Validate the date first
+      const eventDate = new Date(event.date);
+      const eventTime = event.time;
+      
+      // Check if date is valid
+      if (isNaN(eventDate.getTime())) {
+        console.warn('Invalid date for event:', event);
+        return 'scheduled';
+      }
+      
+      // Parse time safely
+      if (!eventTime || typeof eventTime !== 'string') {
+        console.warn('Invalid time for event:', event);
+        return 'scheduled';
+      }
+      
+      const timeParts = eventTime.split(':');
+      if (timeParts.length !== 2) {
+        console.warn('Invalid time format for event:', event);
+        return 'scheduled';
+      }
+      
+      const hours = parseInt(timeParts[0], 10);
+      const minutes = parseInt(timeParts[1], 10);
+      
+      // Validate time parts
+      if (isNaN(hours) || isNaN(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+        console.warn('Invalid time values for event:', event);
+        return 'scheduled';
+      }
+      
+      // Create event datetime
+      const eventDateTime = new Date(eventDate);
+      eventDateTime.setHours(hours, minutes, 0, 0);
+      
+      // Check if the combined datetime is valid
+      if (isNaN(eventDateTime.getTime())) {
+        console.warn('Invalid datetime combination for event:', event);
+        return 'scheduled';
+      }
+      
+      const now = new Date();
+      const eventEndTime = new Date(eventDateTime.getTime() + (2 * 60 * 60 * 1000)); // 2 hours later
+      
+      if (now >= eventDateTime && now <= eventEndTime) {
+        return 'happening';
+      } else if (now > eventEndTime) {
+        return 'finished';
+      } else {
+        return 'scheduled';
+      }
+    } catch (error) {
+      console.error('Error calculating event status:', error, event);
+      return 'scheduled'; // Safe fallback
     }
   }, []);
 

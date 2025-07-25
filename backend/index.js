@@ -160,11 +160,81 @@ app.post('/api/auth/change-password', async (req, res) => {
 // Get all events
 app.get('/api/events', async (req, res) => {
   try {
-    const events = await dbQueries.getAllEvents();
+    console.log('📅 Fetching all events...');
+    const result = await pool.query(`
+      SELECT 
+        id,
+        title,
+        description,
+        date,
+        time,
+        location,
+        max_attendees,
+        status,
+        created_at,
+        updated_at
+      FROM events 
+      ORDER BY date ASC, time ASC
+    `);
+    
+    const events = result.rows.map(event => ({
+      ...event,
+      attendees: []
+    }));
+    
+    console.log(`📅 Found ${events.length} events`);
     res.json(events);
   } catch (error) {
-    console.error('Error fetching events:', error);
+    console.error('❌ Error fetching events:', error);
     res.status(500).json({ error: 'Failed to fetch events' });
+  }
+});
+
+// Debug endpoint to check event data
+app.get('/api/debug/events', async (req, res) => {
+  try {
+    console.log('🔍 Debug: Fetching all events with detailed info...');
+    const result = await pool.query(`
+      SELECT 
+        id,
+        title,
+        description,
+        date,
+        time,
+        location,
+        max_attendees,
+        status,
+        created_at,
+        updated_at
+      FROM events 
+      ORDER BY date ASC, time ASC
+    `);
+    
+    const events = result.rows.map(event => ({
+      ...event,
+      date_string: event.date ? event.date.toISOString().split('T')[0] : 'null',
+      date_type: typeof event.date,
+      time_type: typeof event.time,
+      is_valid_date: event.date ? !isNaN(new Date(event.date).getTime()) : false
+    }));
+    
+    console.log('🔍 Debug events data:', events);
+    
+    res.json({
+      success: true,
+      events: events,
+      total: events.length,
+      debug_info: {
+        current_time: new Date().toISOString(),
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+      }
+    });
+  } catch (error) {
+    console.error('❌ Debug events error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
   }
 });
 
