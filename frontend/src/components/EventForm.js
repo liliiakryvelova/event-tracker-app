@@ -5,9 +5,15 @@ import { useUser } from '../contexts/UserContext';
 // Helper function to properly handle Pacific Time dates
 const formatDateForInput = (dateString) => {
   if (!dateString) return '';
-  // Create date in Pacific Time to avoid timezone shift issues
-  const date = new Date(dateString + 'T12:00:00-08:00'); // Force Pacific Time with noon
-  return date.toISOString().split('T')[0];
+  
+  // Handle both ISO datetime and date-only formats
+  if (dateString.includes('T')) {
+    // Full ISO datetime from database - extract date part to avoid timezone shift
+    return dateString.split('T')[0]; // Return YYYY-MM-DD part directly
+  } else {
+    // Date-only string - return as is
+    return dateString;
+  }
 };
 
 const EventForm = ({ eventId, onSuccess, onCancel }) => {

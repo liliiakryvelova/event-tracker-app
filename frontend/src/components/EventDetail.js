@@ -37,15 +37,23 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
         return 'scheduled';
       }
       
-      // Validate the date first - handle Pacific Time properly
-      const eventDate = new Date(event.date + 'T12:00:00-08:00'); // Force Pacific Time
-      const eventTime = event.time;
+      // Validate the date first - handle both ISO datetime and date-only formats
+      let datePart;
+      if (event.date.includes('T')) {
+        // Full ISO datetime from database - extract date part
+        datePart = event.date.split('T')[0]; // Get YYYY-MM-DD part
+      } else {
+        // Date-only string
+        datePart = event.date;
+      }
       
-      // Check if date is valid
-      if (isNaN(eventDate.getTime())) {
-        console.warn('Invalid date for event:', event);
+      // Validate date part format
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
+        console.warn('Invalid date format for event:', event);
         return 'scheduled';
       }
+      
+      const eventTime = event.time;
       
       // Parse time safely
       if (!eventTime || typeof eventTime !== 'string') {
@@ -68,8 +76,8 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
         return 'scheduled';
       }
       
-      // Create event datetime in Pacific Time
-      const eventDateTime = new Date(event.date + 'T' + event.time + ':00-08:00');
+      // Create event datetime in Pacific Time using the extracted date part
+      const eventDateTime = new Date(datePart + 'T' + event.time + ':00-08:00');
       
       // Check if the combined datetime is valid
       if (isNaN(eventDateTime.getTime())) {
@@ -432,15 +440,31 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
   };
 
   const formatDate = (dateString) => {
-    // Create date and format in Pacific Time to avoid timezone issues
-    const date = new Date(dateString + 'T12:00:00-08:00'); // Force Pacific Time with noon
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'numeric',
-      day: 'numeric',
-      timeZone: 'America/Los_Angeles'
-    });
+    // Handle both ISO datetime and date-only formats
+    if (dateString.includes('T')) {
+      // Full ISO datetime from database
+      // For dates stored as midnight UTC, we need to extract the date part and interpret it correctly
+      const datePart = dateString.split('T')[0]; // Get YYYY-MM-DD part
+      const [year, month, day] = datePart.split('-');
+      const localDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      
+      return localDate.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric'
+      });
+    } else {
+      // Date-only string - force Pacific Time to avoid timezone shift
+      const dateToFormat = new Date(dateString + 'T12:00:00-08:00');
+      return dateToFormat.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+        timeZone: 'America/Los_Angeles'
+      });
+    }
   };
 
   const formatDateTime = (dateTimeString) => {
