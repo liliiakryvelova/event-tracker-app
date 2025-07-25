@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { deleteEvent } from '../services/eventService';
 import { useUser } from '../contexts/UserContext';
 
@@ -16,8 +16,68 @@ const EventList = ({ events, loading, error, onRefresh, onEditEvent, onViewEvent
     }
   };
 
-  const getStatusBadge = (status) => {
-    return <span className={`status-badge status-${status}`}>{status}</span>;
+  // Calculate event status based on date and time
+  const getEventStatus = useCallback((event) => {
+    if (!event?.date || !event?.time) return 'scheduled';
+    
+    const now = new Date();
+    const eventDateTime = new Date(`${event.date}T${event.time}`);
+    
+    // Add 2 hours duration to determine when event ends
+    const eventEndTime = new Date(eventDateTime.getTime() + (2 * 60 * 60 * 1000));
+    
+    if (now < eventDateTime) {
+      return 'scheduled'; // Event hasn't started yet
+    } else if (now >= eventDateTime && now < eventEndTime) {
+      return 'happening'; // Event is currently happening
+    } else {
+      return 'finished'; // Event has finished
+    }
+  }, []);
+
+  const getStatusBadge = (event) => {
+    const status = getEventStatus(event);
+    
+    const statusConfig = {
+      scheduled: {
+        text: '📅 Scheduled',
+        className: 'status-scheduled',
+        style: { backgroundColor: '#e3f2fd', color: '#1976d2', border: '1px solid #bbdefb' }
+      },
+      happening: {
+        text: '🔴 LIVE NOW',
+        className: 'status-happening',
+        style: { 
+          backgroundColor: '#ffebee', 
+          color: '#d32f2f', 
+          border: '1px solid #ffcdd2',
+          animation: 'pulse 2s infinite'
+        }
+      },
+      finished: {
+        text: '✅ Finished',
+        className: 'status-finished',
+        style: { backgroundColor: '#f3e5f5', color: '#7b1fa2', border: '1px solid #e1bee7' }
+      }
+    };
+
+    const config = statusConfig[status] || statusConfig.scheduled;
+    
+    return (
+      <span 
+        className={`status-badge ${config.className}`}
+        style={{
+          padding: '0.25rem 0.75rem',
+          borderRadius: '12px',
+          fontSize: '0.85rem',
+          fontWeight: 'bold',
+          display: 'inline-block',
+          ...config.style
+        }}
+      >
+        {config.text}
+      </span>
+    );
   };
 
   const formatDate = (dateString) => {
@@ -111,7 +171,7 @@ const EventList = ({ events, loading, error, onRefresh, onEditEvent, onViewEvent
             </div>
             
             <div style={{ marginBottom: '1rem' }}>
-              {getStatusBadge(event.status)}
+              {getStatusBadge(event)}
             </div>
             
             <div>

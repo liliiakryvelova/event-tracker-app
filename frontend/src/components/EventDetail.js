@@ -29,6 +29,25 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
     'Mama Mia'
   ];
 
+  // Calculate event status based on date and time
+  const getEventStatus = useCallback((event) => {
+    if (!event?.date || !event?.time) return 'scheduled';
+    
+    const now = new Date();
+    const eventDateTime = new Date(`${event.date}T${event.time}`);
+    
+    // Add 2 hours duration to determine when event ends
+    const eventEndTime = new Date(eventDateTime.getTime() + (2 * 60 * 60 * 1000));
+    
+    if (now < eventDateTime) {
+      return 'scheduled'; // Event hasn't started yet
+    } else if (now >= eventDateTime && now < eventEndTime) {
+      return 'happening'; // Event is currently happening
+    } else {
+      return 'finished'; // Event has finished
+    }
+  }, []);
+
   const loadEvent = useCallback(async (isAutoSync = false) => {
     if (!eventId) return;
     
@@ -320,8 +339,49 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
     return false;
   };
 
-  const getStatusBadge = (status) => {
-    return <span className={`status-badge status-${status}`}>{status}</span>;
+  const getStatusBadge = (event) => {
+    const status = getEventStatus(event);
+    
+    const statusConfig = {
+      scheduled: {
+        text: '📅 Scheduled',
+        className: 'status-scheduled',
+        style: { backgroundColor: '#e3f2fd', color: '#1976d2', border: '1px solid #bbdefb' }
+      },
+      happening: {
+        text: '🔴 LIVE NOW',
+        className: 'status-happening',
+        style: { 
+          backgroundColor: '#ffebee', 
+          color: '#d32f2f', 
+          border: '1px solid #ffcdd2',
+          animation: 'pulse 2s infinite'
+        }
+      },
+      finished: {
+        text: '✅ Finished',
+        className: 'status-finished',
+        style: { backgroundColor: '#f3e5f5', color: '#7b1fa2', border: '1px solid #e1bee7' }
+      }
+    };
+
+    const config = statusConfig[status] || statusConfig.scheduled;
+    
+    return (
+      <span 
+        className={`status-badge ${config.className}`}
+        style={{
+          padding: '0.25rem 0.75rem',
+          borderRadius: '12px',
+          fontSize: '0.85rem',
+          fontWeight: 'bold',
+          display: 'inline-block',
+          ...config.style
+        }}
+      >
+        {config.text}
+      </span>
+    );
   };
 
   const formatDate = (dateString) => {
@@ -388,11 +448,49 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
         <button onClick={onBack} className="btn">← Back to Events</button>
       </div>
 
+      {/* Event Status Notification */}
+      {getEventStatus(event) === 'happening' && (
+        <div style={{
+          backgroundColor: '#ffebee',
+          border: '1px solid #ffcdd2',
+          borderRadius: '8px',
+          padding: '1rem',
+          marginBottom: '2rem',
+          textAlign: 'center',
+          animation: 'pulse 2s infinite'
+        }}>
+          <h3 style={{ margin: 0, color: '#d32f2f', fontWeight: 'bold' }}>
+            🔴 EVENT IS HAPPENING NOW!
+          </h3>
+          <p style={{ margin: '0.5rem 0 0 0', color: '#d32f2f' }}>
+            This event is currently in progress. Join if you haven't already!
+          </p>
+        </div>
+      )}
+
+      {getEventStatus(event) === 'finished' && (
+        <div style={{
+          backgroundColor: '#f3e5f5',
+          border: '1px solid #e1bee7',
+          borderRadius: '8px',
+          padding: '1rem',
+          marginBottom: '2rem',
+          textAlign: 'center'
+        }}>
+          <h3 style={{ margin: 0, color: '#7b1fa2', fontWeight: 'bold' }}>
+            ✅ EVENT HAS FINISHED
+          </h3>
+          <p style={{ margin: '0.5rem 0 0 0', color: '#7b1fa2' }}>
+            This event has already ended. Check out our other upcoming events!
+          </p>
+        </div>
+      )}
+
       <div className="card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
           <div>
             <h1 style={{ margin: 0, marginBottom: '1rem', color: '#2c3e50' }}>{String(event?.title || 'Event')}</h1>
-            {getStatusBadge(event.status)}
+            {getStatusBadge(event)}
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
             {/* Join/Leave Event Button */}
@@ -415,20 +513,48 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
                       handleJoinEvent({ preventDefault: () => {} });
                     }
                   }}
-                  disabled={event.attendees.length >= Math.min(event.maxAttendees || 20, 20)}
-                  title={event.attendees.length >= Math.min(event.maxAttendees || 20, 20) ? 'Event is full' : 'Join this event'}
+                  disabled={
+                    event.attendees.length >= Math.min(event.maxAttendees || 20, 20) ||
+                    getEventStatus(event) === 'finished'
+                  }
+                  title={
+                    getEventStatus(event) === 'finished' 
+                      ? 'Event has finished' 
+                      : event.attendees.length >= Math.min(event.maxAttendees || 20, 20) 
+                        ? 'Event is full' 
+                        : 'Join this event'
+                  }
                 >
-                  {event.attendees.length >= Math.min(event.maxAttendees || 20, 20) ? 'Event Full' : 'Join Event'}
+                  {getEventStatus(event) === 'finished' 
+                    ? 'Event Finished' 
+                    : event.attendees.length >= Math.min(event.maxAttendees || 20, 20) 
+                      ? 'Event Full' 
+                      : 'Join Event'
+                  }
                 </button>
               )
             ) : (
               <button 
                 className="btn btn-success"
                 onClick={() => setShowJoinForm(true)}
-                disabled={event.attendees.length >= Math.min(event.maxAttendees || 20, 20)}
-                title={event.attendees.length >= Math.min(event.maxAttendees || 20, 20) ? 'Event is full' : 'Join this event'}
+                disabled={
+                  event.attendees.length >= Math.min(event.maxAttendees || 20, 20) ||
+                  getEventStatus(event) === 'finished'
+                }
+                title={
+                  getEventStatus(event) === 'finished' 
+                    ? 'Event has finished' 
+                    : event.attendees.length >= Math.min(event.maxAttendees || 20, 20) 
+                      ? 'Event is full' 
+                      : 'Join this event'
+                }
               >
-                {event.attendees.length >= Math.min(event.maxAttendees || 20, 20) ? 'Event Full' : 'Join Event'}
+                {getEventStatus(event) === 'finished' 
+                  ? 'Event Finished' 
+                  : event.attendees.length >= Math.min(event.maxAttendees || 20, 20) 
+                    ? 'Event Full' 
+                    : 'Join Event'
+                }
               </button>
             )}
 
