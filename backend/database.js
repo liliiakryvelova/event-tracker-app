@@ -286,7 +286,7 @@ const dbQueries = {
       eventData.date,
       eventData.time,
       eventData.location,
-      eventData.maxAttendees,
+      eventData.maxAttendees || 20, // Default to 20 if not specified
       eventData.status || 'planned'
     ]);
 
@@ -322,7 +322,7 @@ const dbQueries = {
       eventData.date,
       eventData.time,
       eventData.location,
-      eventData.maxAttendees,
+      eventData.maxAttendees || 20, // Default to 20 if not specified
       eventData.status,
       id
     ]);
