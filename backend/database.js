@@ -287,6 +287,8 @@ const dbQueries = {
 
   // Update event
   updateEvent: async (id, eventData) => {
+    console.log('🔄 Updating event:', id, 'with data:', eventData);
+    
     const result = await pool.query(`
       UPDATE events 
       SET title = $1, description = $2, date = $3, time = $4, location = $5, 
@@ -305,29 +307,45 @@ const dbQueries = {
     ]);
 
     if (result.rows.length === 0) {
+      console.log('❌ Event not found for update:', id);
       return null;
     }
 
-    // Handle attendees update
-    if (eventData.attendees) {
-      // Clear existing attendees
-      await pool.query('DELETE FROM attendees WHERE event_id = $1', [id]);
+    console.log('✅ Event updated successfully:', result.rows[0]);
+
+    // Handle attendees update - for form editing, we typically don't update attendees
+    // Only update attendees if explicitly provided as objects with full data
+    if (eventData.attendees && Array.isArray(eventData.attendees)) {
+      console.log('📝 Updating attendees:', eventData.attendees);
       
-      // Add new attendees
-      for (let i = 0; i < eventData.attendees.length; i++) {
-        const attendee = eventData.attendees[i];
-        await pool.query(`
-          INSERT INTO attendees (event_id, name, team, phone, role, joined_at, join_order)
-          VALUES ($1, $2, $3, $4, $5, $6, $7)
-        `, [
-          id,
-          attendee.name,
-          attendee.team,
-          attendee.phone,
-          attendee.role || 'guest',
-          attendee.joinedAt,
-          attendee.joinOrder || i + 1
-        ]);
+      // Check if attendees are objects (full data) or strings (names only)
+      const hasFullAttendeeData = eventData.attendees.length > 0 && 
+        typeof eventData.attendees[0] === 'object' && 
+        eventData.attendees[0].name !== undefined;
+
+      if (hasFullAttendeeData) {
+        // Clear existing attendees only if we have full attendee data
+        await pool.query('DELETE FROM attendees WHERE event_id = $1', [id]);
+        
+        // Add new attendees
+        for (let i = 0; i < eventData.attendees.length; i++) {
+          const attendee = eventData.attendees[i];
+          await pool.query(`
+            INSERT INTO attendees (event_id, name, team, phone, role, joined_at, join_order)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+          `, [
+            id,
+            attendee.name,
+            attendee.team || '',
+            attendee.phone || '',
+            attendee.role || 'guest',
+            attendee.joinedAt || new Date(),
+            attendee.joinOrder || i + 1
+          ]);
+        }
+        console.log('✅ Attendees updated successfully');
+      } else {
+        console.log('⚠️ Skipping attendee update - only basic event data provided');
       }
     }
 

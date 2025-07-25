@@ -1,6 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { createEvent, updateEvent, getEvent, getEvents } from '../services/eventService';
-import { useUser } from '../contexts/UserContext';
+import { useUser       // Ensure maxAttendees is properly set
+      const eventData = {
+        title: formData.title,
+        description: formData.description,
+        date: formData.date,
+        time: formData.time,
+        location: formData.location,
+        attendees: formData.attendees,
+        status: formData.status,
+        maxAttendees: Number(formData.maxAttendees) || 20
+      };
+
+      console.log('📝 EventForm: Submitting event data:', eventData);'../contexts/UserContext';
 
 const EventForm = ({ eventId, onSuccess, onCancel }) => {
   const { canCreate, canEdit } = useUser();
@@ -157,18 +169,32 @@ const EventForm = ({ eventId, onSuccess, onCancel }) => {
         return;
       }
 
-      // Ensure maxAttendees is set to 20 if not specified
+      // Ensure maxAttendees is properly set (respect user's input)
       const eventData = {
-        ...formData,
-        maxAttendees: formData.maxAttendees || 20
+        title: formData.title,
+        description: formData.description,
+        date: formData.date,
+        time: formData.time,
+        location: formData.location,
+        attendees: formData.attendees,
+        status: formData.status,
+        maxAttendees: Number(formData.maxAttendees) || 20
       };
 
+      console.log('📝 EventForm: Submitting event data:', eventData);
+      console.log('📝 EventForm: Is editing:', isEditing);
+      console.log('📝 EventForm: Event ID:', eventId);
+
       if (isEditing) {
+        console.log('🔄 Calling updateEvent with:', eventId, eventData);
         await updateEvent(eventId, eventData);
         setSuccess('Event updated successfully!');
+        console.log('✅ Event updated successfully');
       } else {
+        console.log('➕ Calling createEvent with:', eventData);
         await createEvent(eventData);
         setSuccess('Event created successfully!');
+        console.log('✅ Event created successfully');
       }
       
       if (onSuccess) {

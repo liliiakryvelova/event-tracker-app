@@ -276,17 +276,26 @@ app.post('/api/events', async (req, res) => {
 // Update event
 app.put('/api/events/:id', async (req, res) => {
   try {
+    console.log('🔄 PUT /api/events/:id - Update event request');
+    console.log('📝 Event ID:', req.params.id);
+    console.log('📝 Request body:', req.body);
+    console.log('📝 MaxAttendees from request:', req.body.maxAttendees);
+    console.log('📝 Date from request:', req.body.date);
+    
     const updatedEvent = await dbQueries.updateEvent(req.params.id, req.body);
     
     if (updatedEvent) {
-      console.log(`Updated event: ${updatedEvent.title} (ID: ${updatedEvent.id})`);
-      console.log(`Attendees: ${updatedEvent.attendees?.length || 0}`);
+      console.log(`✅ Updated event: ${updatedEvent.title} (ID: ${updatedEvent.id})`);
+      console.log(`📊 Max Attendees: ${updatedEvent.max_attendees}`);
+      console.log(`📅 Date: ${updatedEvent.date}`);
+      console.log(`👥 Current Attendees: ${updatedEvent.attendees?.length || 0}`);
       res.json(updatedEvent);
     } else {
+      console.log('❌ Event not found for ID:', req.params.id);
       res.status(404).json({ error: 'Event not found' });
     }
   } catch (error) {
-    console.error('Error updating event:', error);
+    console.error('❌ Error updating event:', error);
     res.status(500).json({ error: 'Failed to update event' });
   }
 });

@@ -560,20 +560,20 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
                     }
                   }}
                   disabled={
-                    event.attendees.length >= Math.min(event.maxAttendees || 20, 20) ||
+                    event.attendees.length >= (event.maxAttendees || 20) ||
                     getEventStatus(event) === 'finished'
                   }
                   title={
                     getEventStatus(event) === 'finished' 
                       ? 'Event has finished' 
-                      : event.attendees.length >= Math.min(event.maxAttendees || 20, 20) 
+                      : event.attendees.length >= (event.maxAttendees || 20) 
                         ? 'Event is full' 
                         : 'Join this event'
                   }
                 >
                   {getEventStatus(event) === 'finished' 
                     ? 'Event Finished' 
-                    : event.attendees.length >= Math.min(event.maxAttendees || 20, 20) 
+                    : event.attendees.length >= (event.maxAttendees || 20) 
                       ? 'Event Full' 
                       : 'Join Event'
                   }
@@ -584,13 +584,13 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
                 className="btn btn-success"
                 onClick={() => setShowJoinForm(true)}
                 disabled={
-                  event.attendees.length >= Math.min(event.maxAttendees || 20, 20) ||
+                  event.attendees.length >= (event.maxAttendees || 20) ||
                   getEventStatus(event) === 'finished'
                 }
                 title={
                   getEventStatus(event) === 'finished' 
                     ? 'Event has finished' 
-                    : event.attendees.length >= Math.min(event.maxAttendees || 20, 20) 
+                    : event.attendees.length >= (event.maxAttendees || 20) 
                       ? 'Event is full' 
                       : 'Join this event'
                 }

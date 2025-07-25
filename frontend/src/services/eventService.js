@@ -65,10 +65,18 @@ export const createEvent = async (eventData) => {
 
 export const updateEvent = async (id, eventData) => {
   try {
+    console.log('🔄 updateEvent called with:', { id, eventData });
     const response = await api.put(`/events/${id}`, eventData);
+    console.log('✅ updateEvent response:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Error updating event:', error);
+    console.error('❌ Error updating event:', error);
+    console.error('❌ Update error details:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+      url: error.config?.url
+    });
     throw error;
   }
 };
