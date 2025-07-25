@@ -1,18 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createEvent, updateEvent, getEvent, getEvents } from '../services/eventService';
-import { useUser       // Ensure maxAttendees is properly set
-      const eventData = {
-        title: formData.title,
-        description: formData.description,
-        date: formData.date,
-        time: formData.time,
-        location: formData.location,
-        attendees: formData.attendees,
-        status: formData.status,
-        maxAttendees: Number(formData.maxAttendees) || 20
-      };
-
-      console.log('📝 EventForm: Submitting event data:', eventData);'../contexts/UserContext';
+import { useUser } from '../contexts/UserContext';
 
 const EventForm = ({ eventId, onSuccess, onCancel }) => {
   const { canCreate, canEdit } = useUser();
