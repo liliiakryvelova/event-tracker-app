@@ -18,10 +18,27 @@ const EventList = ({ events, loading, error, onRefresh, onEditEvent, onViewEvent
 
   // Calculate event status based on date and time
   const getEventStatus = useCallback((event) => {
-    if (!event?.date || !event?.time) return 'scheduled';
+    if (!event?.date || !event?.time) {
+      console.log('⏰ List Status Debug - Missing date or time:', { date: event?.date, time: event?.time });
+      return 'scheduled';
+    }
     
     const now = new Date();
     const eventDateTime = new Date(`${event.date}T${event.time}`);
+    
+    // Debug logging
+    console.log('⏰ List Status Debug for event:', event.title);
+    console.log('⏰ Current time:', now.toISOString());
+    console.log('⏰ Event date string:', event.date);
+    console.log('⏰ Event time string:', event.time);
+    console.log('⏰ Parsed event datetime:', eventDateTime.toISOString());
+    console.log('⏰ Is eventDateTime valid?', !isNaN(eventDateTime.getTime()));
+    
+    // Check if the parsed date is valid
+    if (isNaN(eventDateTime.getTime())) {
+      console.log('⏰ Invalid date, defaulting to scheduled');
+      return 'scheduled';
+    }
     
     // Add 2 hours duration to determine when event ends
     const eventEndTime = new Date(eventDateTime.getTime() + (2 * 60 * 60 * 1000));

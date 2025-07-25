@@ -31,19 +31,43 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
 
   // Calculate event status based on date and time
   const getEventStatus = useCallback((event) => {
-    if (!event?.date || !event?.time) return 'scheduled';
+    if (!event?.date || !event?.time) {
+      console.log('⏰ Status Debug - Missing date or time:', { date: event?.date, time: event?.time });
+      return 'scheduled';
+    }
     
     const now = new Date();
     const eventDateTime = new Date(`${event.date}T${event.time}`);
     
+    // Debug logging
+    console.log('⏰ Status Debug for event:', event.title);
+    console.log('⏰ Current time:', now.toISOString());
+    console.log('⏰ Event date string:', event.date);
+    console.log('⏰ Event time string:', event.time);
+    console.log('⏰ Parsed event datetime:', eventDateTime.toISOString());
+    console.log('⏰ Is eventDateTime valid?', !isNaN(eventDateTime.getTime()));
+    
+    // Check if the parsed date is valid
+    if (isNaN(eventDateTime.getTime())) {
+      console.log('⏰ Invalid date, defaulting to scheduled');
+      return 'scheduled';
+    }
+    
     // Add 2 hours duration to determine when event ends
     const eventEndTime = new Date(eventDateTime.getTime() + (2 * 60 * 60 * 1000));
     
+    console.log('⏰ Event end time:', eventEndTime.toISOString());
+    console.log('⏰ Comparison: now < eventDateTime?', now < eventDateTime);
+    console.log('⏰ Comparison: now >= eventDateTime && now < eventEndTime?', now >= eventDateTime && now < eventEndTime);
+    
     if (now < eventDateTime) {
+      console.log('⏰ Status: SCHEDULED');
       return 'scheduled'; // Event hasn't started yet
     } else if (now >= eventDateTime && now < eventEndTime) {
+      console.log('⏰ Status: HAPPENING');
       return 'happening'; // Event is currently happening
     } else {
+      console.log('⏰ Status: FINISHED');
       return 'finished'; // Event has finished
     }
   }, []);
@@ -560,24 +584,46 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
 
             {/* Admin Actions */}
             {canEdit() && (
-              <button 
-                onClick={() => {
-                  console.log('✏️ Edit button clicked for event:', eventId);
-                  console.log('✏️ Event object:', event);
-                  console.log('✏️ onEdit callback:', onEdit);
-                  console.log('✏️ onEdit type:', typeof onEdit);
-                  if (onEdit) {
-                    console.log('✏️ Calling onEdit()...');
-                    onEdit();
-                    console.log('✏️ onEdit() called successfully');
-                  } else {
-                    console.error('❌ onEdit callback is not defined');
-                  }
-                }} 
-                className="btn"
-              >
-                ✏️ Edit
-              </button>
+              <>
+                <button 
+                  onClick={() => {
+                    console.log('✏️ Edit button clicked for event:', eventId);
+                    console.log('✏️ Event object:', event);
+                    console.log('✏️ onEdit callback:', onEdit);
+                    console.log('✏️ onEdit type:', typeof onEdit);
+                    if (onEdit) {
+                      console.log('✏️ Calling onEdit()...');
+                      onEdit();
+                      console.log('✏️ onEdit() called successfully');
+                    } else {
+                      console.error('❌ onEdit callback is not defined');
+                    }
+                  }} 
+                  className="btn"
+                  disabled={getEventStatus(event) === 'finished'}
+                  title={getEventStatus(event) === 'finished' ? 'Cannot edit finished events' : 'Edit this event'}
+                >
+                  ✏️ Edit
+                </button>
+                
+                {/* Temporary: Admin override for incorrectly finished events */}
+                {getEventStatus(event) === 'finished' && (
+                  <button 
+                    onClick={() => {
+                      if (window.confirm('Override finished status and edit this event? This is a temporary fix for date parsing issues.')) {
+                        if (onEdit) {
+                          onEdit();
+                        }
+                      }
+                    }} 
+                    className="btn"
+                    style={{ backgroundColor: '#ff9800', color: 'white' }}
+                    title="Force edit this event (admin override)"
+                  >
+                    🔧 Force Edit
+                  </button>
+                )}
+              </>
             )}
             {canDelete() && (
               <button 
