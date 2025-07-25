@@ -91,6 +91,43 @@ export const deleteEvent = async (id) => {
   }
 };
 
+export const addAttendee = async (eventId, attendeeData) => {
+  try {
+    console.log('👤 Adding attendee to event:', eventId, attendeeData);
+    const response = await api.post(`/events/${eventId}/attendees`, attendeeData);
+    console.log('✅ Attendee added, updated event:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Error adding attendee:', error);
+    console.error('❌ Error details:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+      url: error.config?.url
+    });
+    throw error;
+  }
+};
+
+export const removeAttendee = async (eventId, attendeeName) => {
+  try {
+    console.log('🗑️ Removing attendee from event:', eventId, attendeeName);
+    const encodedName = encodeURIComponent(attendeeName);
+    const response = await api.delete(`/events/${eventId}/attendees/${encodedName}`);
+    console.log('✅ Attendee removed, updated event:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Error removing attendee:', error);
+    console.error('❌ Error details:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+      url: error.config?.url
+    });
+    throw error;
+  }
+};
+
 export const checkHealth = async () => {
   try {
     const response = await api.get('/health');
