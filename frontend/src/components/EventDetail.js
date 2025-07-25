@@ -37,8 +37,8 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
         return 'scheduled';
       }
       
-      // Validate the date first
-      const eventDate = new Date(event.date);
+      // Validate the date first - handle Pacific Time properly
+      const eventDate = new Date(event.date + 'T12:00:00-08:00'); // Force Pacific Time
       const eventTime = event.time;
       
       // Check if date is valid
@@ -68,9 +68,8 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
         return 'scheduled';
       }
       
-      // Create event datetime
-      const eventDateTime = new Date(eventDate);
-      eventDateTime.setHours(hours, minutes, 0, 0);
+      // Create event datetime in Pacific Time
+      const eventDateTime = new Date(event.date + 'T' + event.time + ':00-08:00');
       
       // Check if the combined datetime is valid
       if (isNaN(eventDateTime.getTime())) {
@@ -78,12 +77,14 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
         return 'scheduled';
       }
       
+      // Get current time in Pacific Time
       const now = new Date();
+      const nowPacific = new Date(now.toLocaleString("en-US", {timeZone: "America/Los_Angeles"}));
       const eventEndTime = new Date(eventDateTime.getTime() + (2 * 60 * 60 * 1000)); // 2 hours later
       
-      if (now >= eventDateTime && now <= eventEndTime) {
+      if (nowPacific >= eventDateTime && nowPacific <= eventEndTime) {
         return 'happening';
-      } else if (now > eventEndTime) {
+      } else if (nowPacific > eventEndTime) {
         return 'finished';
       } else {
         return 'scheduled';
@@ -431,11 +432,14 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    // Create date and format in Pacific Time to avoid timezone issues
+    const date = new Date(dateString + 'T12:00:00-08:00'); // Force Pacific Time with noon
+    return date.toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+      month: 'numeric',
+      day: 'numeric',
+      timeZone: 'America/Los_Angeles'
     });
   };
 

@@ -2,6 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { createEvent, updateEvent, getEvent, getEvents } from '../services/eventService';
 import { useUser } from '../contexts/UserContext';
 
+// Helper function to properly handle Pacific Time dates
+const formatDateForInput = (dateString) => {
+  if (!dateString) return '';
+  // Create date in Pacific Time to avoid timezone shift issues
+  const date = new Date(dateString + 'T12:00:00-08:00'); // Force Pacific Time with noon
+  return date.toISOString().split('T')[0];
+};
+
 const EventForm = ({ eventId, onSuccess, onCancel }) => {
   const { canCreate, canEdit } = useUser();
   const isEditing = !!eventId;
@@ -62,7 +70,7 @@ const EventForm = ({ eventId, onSuccess, onCancel }) => {
           setFormData({
             title: String(event.title || ''),
             description: String(event.description || ''),
-            date: String(event.date || ''),
+            date: formatDateForInput(event.date),
             time: String(event.time || ''),
             location: String(event.location || ''),
             attendees: event.attendees || [],
