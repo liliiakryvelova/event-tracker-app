@@ -33,12 +33,8 @@ const EventForm = ({ eventId, onSuccess, onCancel }) => {
     date: '',
     time: '',
     location: '',
-    attendees: [],
-    status: 'planned',
-    maxAttendees: 20 // Default to 20 attendees max
+    status: 'planned'
   });
-
-  const [attendeeInput, setAttendeeInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
@@ -72,7 +68,6 @@ const EventForm = ({ eventId, onSuccess, onCancel }) => {
           console.log('📝 EventForm: Fetching event for editing...');
           const event = await getEvent(eventId);
           console.log('📝 EventForm: Loaded event data:', event);
-          console.log('📝 EventForm: Event maxAttendees:', event.maxAttendees, 'type:', typeof event.maxAttendees);
           
           setFormData({
             title: String(event.title || ''),
@@ -80,9 +75,7 @@ const EventForm = ({ eventId, onSuccess, onCancel }) => {
             date: formatDateForInput(event.date),
             time: String(event.time || ''),
             location: String(event.location || ''),
-            attendees: event.attendees || [],
-            status: String(event.status || 'planned'),
-            maxAttendees: event.maxAttendees !== undefined && event.maxAttendees !== null ? Number(event.maxAttendees) : 20
+            status: String(event.status || 'planned')
           });
           console.log('📝 EventForm: Form data set successfully');
         } catch (error) {
@@ -130,36 +123,6 @@ const EventForm = ({ eventId, onSuccess, onCancel }) => {
     }));
   };
 
-  const handleAddAttendee = () => {
-    if (attendeeInput.trim()) {
-      // Check if attendee already exists (handle both string and object formats)
-      const existingAttendee = formData.attendees.find(attendee => {
-        const attendeeName = typeof attendee === 'string' ? attendee : attendee?.name;
-        return attendeeName === attendeeInput.trim();
-      });
-      
-      if (!existingAttendee) {
-        setFormData(prev => ({
-          ...prev,
-          attendees: [...prev.attendees, attendeeInput.trim()]
-        }));
-        setAttendeeInput('');
-      }
-    }
-  };
-
-  const handleRemoveAttendee = (attendeeToRemove) => {
-    setFormData(prev => ({
-      ...prev,
-      attendees: prev.attendees.filter(attendee => {
-        // Handle both string and object attendees
-        const attendeeName = typeof attendee === 'string' ? attendee : attendee?.name;
-        const toRemoveName = typeof attendeeToRemove === 'string' ? attendeeToRemove : attendeeToRemove?.name;
-        return attendeeName !== toRemoveName;
-      })
-    }));
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -174,33 +137,14 @@ const EventForm = ({ eventId, onSuccess, onCancel }) => {
         return;
       }
 
-      // Validate max attendees
-      if (formData.maxAttendees !== '' && formData.maxAttendees !== null && formData.maxAttendees !== undefined) {
-        const maxAttendeesNum = Number(formData.maxAttendees);
-        if (isNaN(maxAttendeesNum) || maxAttendeesNum < 0) {
-          setError('Please enter a valid number for maximum attendees.');
-          setLoading(false);
-          return;
-        }
-        if (maxAttendeesNum > 20) {
-          setError('Maximum attendees cannot exceed 20 people.');
-          setLoading(false);
-          return;
-        }
-      }
-
-      // Ensure maxAttendees is properly set (respect user's input, including 0)
+      // Prepare event data for submission
       const eventData = {
         title: formData.title,
         description: formData.description,
         date: formData.date,
         time: formData.time,
         location: formData.location,
-        attendees: formData.attendees,
-        status: formData.status,
-        maxAttendees: formData.maxAttendees !== '' && formData.maxAttendees !== null && formData.maxAttendees !== undefined 
-          ? Number(formData.maxAttendees) 
-          : 20
+        status: formData.status
       };
 
       console.log('📝 EventForm: Submitting event data:', eventData);
@@ -264,21 +208,7 @@ const EventForm = ({ eventId, onSuccess, onCancel }) => {
           marginBottom: '1rem',
           fontSize: '0.9rem'
         }}>
-          📊 Events: {eventCount}/3 | 👥 Each event limited to maximum 20 attendees
-        </div>
-      )}
-      
-      {!isEditing && (
-        <div style={{ 
-          background: '#fff3e0', 
-          color: '#f57c00', 
-          padding: '0.75rem', 
-          borderRadius: '6px', 
-          marginBottom: '1rem',
-          fontSize: '0.9rem',
-          border: '1px solid #ffb74d'
-        }}>
-          ⚠️ <strong>Important:</strong> All events are automatically limited to a maximum of 20 attendees for optimal game experience.
+          📊 Events: {eventCount}/3
         </div>
       )}
       
@@ -351,34 +281,6 @@ const EventForm = ({ eventId, onSuccess, onCancel }) => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="maxAttendees">👥 Attendee Limit</label>
-          <div style={{ 
-            background: '#f3e5f5', 
-            color: '#7b1fa2', 
-            padding: '0.5rem', 
-            borderRadius: '4px', 
-            marginBottom: '0.5rem',
-            fontSize: '0.85rem',
-            border: '1px solid #ce93d8'
-          }}>
-            🚫 <strong>Maximum limit: 20 attendees per event</strong> - This cannot be exceeded
-          </div>
-          <input
-            type="number"
-            id="maxAttendees"
-            name="maxAttendees"
-            value={formData.maxAttendees || ''}
-            onChange={handleChange}
-            min="1"
-            max="20"
-            placeholder="Enter limit (1-20, default: 20)"
-          />
-          <small style={{ color: '#666', fontSize: '0.8rem', display: 'block', marginTop: '0.25rem' }}>
-            Set maximum number of attendees (1-20). Will default to 20 if left empty.
-          </small>
-        </div>
-
-        <div className="form-group">
           <label htmlFor="status">Status</label>
           <select
             id="status"
@@ -391,66 +293,6 @@ const EventForm = ({ eventId, onSuccess, onCancel }) => {
             <option value="completed">Completed</option>
             <option value="cancelled">Cancelled</option>
           </select>
-        </div>
-
-        <div className="form-group">
-          <label>Attendees</label>
-          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
-            <input
-              type="text"
-              value={attendeeInput}
-              onChange={(e) => setAttendeeInput(e.target.value)}
-              placeholder="Enter attendee name"
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  handleAddAttendee();
-                }
-              }}
-            />
-            <button
-              type="button"
-              className="btn"
-              onClick={handleAddAttendee}
-            >
-              Add
-            </button>
-          </div>
-          
-          {formData.attendees.length > 0 && (
-            <div style={{ marginTop: '0.5rem' }}>
-              {formData.attendees.map((attendee, index) => (
-                <span
-                  key={index}
-                  style={{
-                    display: 'inline-block',
-                    background: '#e3f2fd',
-                    color: '#1976d2',
-                    padding: '0.25rem 0.5rem',
-                    margin: '0.25rem',
-                    borderRadius: '12px',
-                    fontSize: '0.9rem'
-                  }}
-                >
-                  {typeof attendee === 'string' ? attendee : attendee?.name || 'Unknown'}
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveAttendee(attendee)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: '#1976d2',
-                      marginLeft: '0.5rem',
-                      cursor: 'pointer',
-                      padding: 0
-                    }}
-                  >
-                    ✕
-                  </button>
-                </span>
-              ))}
-            </div>
-          )}
         </div>
 
         <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>

@@ -181,27 +181,7 @@ app.post('/api/auth/change-password', async (req, res) => {
 app.get('/api/events', async (req, res) => {
   try {
     console.log('📅 Fetching all events...');
-    const result = await pool.query(`
-      SELECT 
-        id,
-        title,
-        description,
-        date,
-        time,
-        location,
-        max_attendees,
-        status,
-        created_at,
-        updated_at
-      FROM events 
-      ORDER BY date ASC, time ASC
-    `);
-    
-    const events = result.rows.map(event => ({
-      ...event,
-      attendees: []
-    }));
-    
+    const events = await dbQueries.getAllEvents();
     console.log(`📅 Found ${events.length} events`);
     res.json(events);
   } catch (error) {
