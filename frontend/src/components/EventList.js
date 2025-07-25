@@ -127,7 +127,28 @@ const EventList = ({ events, loading, error, onRefresh, onEditEvent, onViewEvent
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString();
+    if (!dateString) return 'Invalid Date';
+    
+    // Handle both ISO datetime and date-only formats to avoid timezone shifts
+    let datePart;
+    if (dateString.includes('T')) {
+      // Full ISO datetime from database - extract date part
+      datePart = dateString.split('T')[0];
+    } else {
+      // Date-only string
+      datePart = dateString;
+    }
+    
+    // Parse as local date to avoid timezone conversion
+    const [year, month, day] = datePart.split('-');
+    const date = new Date(year, month - 1, day); // month is 0-indexed
+    
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   };
 
   if (loading) {
