@@ -26,12 +26,30 @@ app.use((req, res, next) => {
 
 // CORS configuration for separate SPA deployment
 app.use(cors({
-  origin: [
-    'https://event-tracker-frontend-qv6e.onrender.com',
-    'https://event-tracker-app-u25w.onrender.com', // Current backend URL
-    'http://localhost:3000', // For local development
-    'http://localhost:3001' // Alternative local port
-  ],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'https://event-tracker-frontend-qv6e.onrender.com',
+      'https://event-tracker-app-u25w.onrender.com', // Old backend URL (keeping for compatibility)
+      'https://event-tracker-backend.onrender.com', // Current backend URL
+      'http://localhost:3000', // For local development
+      'http://localhost:3001' // Alternative local port
+    ];
+    
+    // Allow any Render domain for this app during development
+    if (origin.includes('onrender.com') && origin.includes('event-tracker')) {
+      return callback(null, true);
+    }
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 app.use(bodyParser.json());
