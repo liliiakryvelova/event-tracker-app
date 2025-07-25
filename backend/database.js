@@ -174,45 +174,66 @@ const changePassword = async (userId, newPassword) => {
 
 // Database query functions
 const dbQueries = {
-  // Get all events with attendees
+  // Get all events with attendees (optimized query)
   getAllEvents: async () => {
-    const eventsResult = await pool.query(`
-      SELECT e.*, COUNT(a.id) as attendee_count
+    console.log('📋 Fetching all events with attendees...');
+    
+    // Get all events with their attendees in one query using JSON aggregation
+    const result = await pool.query(`
+      SELECT 
+        e.id,
+        e.title,
+        e.description,
+        e.date,
+        e.time,
+        e.location,
+        e.max_attendees,
+        e.status,
+        e.created_at,
+        e.updated_at,
+        COALESCE(
+          JSON_AGG(
+            CASE 
+              WHEN a.id IS NOT NULL THEN 
+                JSON_BUILD_OBJECT(
+                  'name', a.name,
+                  'team', a.team,
+                  'phone', a.phone,
+                  'role', a.role,
+                  'joinedAt', a.joined_at,
+                  'joinOrder', a.join_order
+                )
+              ELSE NULL
+            END
+            ORDER BY a.join_order ASC
+          ) FILTER (WHERE a.id IS NOT NULL),
+          '[]'::json
+        ) as attendees
       FROM events e
       LEFT JOIN attendees a ON e.id = a.event_id
-      GROUP BY e.id
+      GROUP BY e.id, e.title, e.description, e.date, e.time, e.location, 
+               e.max_attendees, e.status, e.created_at, e.updated_at
       ORDER BY e.created_at DESC
     `);
 
-    const events = await Promise.all(
-      eventsResult.rows.map(async (event) => {
-        const attendeesResult = await pool.query(
-          'SELECT * FROM attendees WHERE event_id = $1 ORDER BY join_order ASC',
-          [event.id]
-        );
-        
-        return {
-          id: event.id.toString(),
-          title: event.title,
-          description: event.description,
-          date: event.date,
-          time: event.time,
-          location: event.location,
-          maxAttendees: event.max_attendees,
-          status: event.status,
-          createdAt: event.created_at,
-          updatedAt: event.updated_at,
-          attendees: attendeesResult.rows.map(attendee => ({
-            name: attendee.name,
-            team: attendee.team,
-            phone: attendee.phone,
-            role: attendee.role,
-            joinedAt: attendee.joined_at,
-            joinOrder: attendee.join_order
-          }))
-        };
-      })
-    );
+    const events = result.rows.map(event => ({
+      id: event.id.toString(),
+      title: event.title,
+      description: event.description,
+      date: event.date,
+      time: event.time,
+      location: event.location,
+      maxAttendees: event.max_attendees,
+      status: event.status,
+      createdAt: event.created_at,
+      updatedAt: event.updated_at,
+      attendees: Array.isArray(event.attendees) ? event.attendees : []
+    }));
+
+    console.log(`✅ Fetched ${events.length} events`);
+    events.forEach(event => {
+      console.log(`📋 Event: ${event.title} - ${event.attendees.length} attendees`);
+    });
 
     return events;
   },
@@ -285,7 +306,7 @@ const dbQueries = {
     };
   },
 
-  // Update event
+  // Update event (ONLY event data, never touches attendees)
   updateEvent: async (id, eventData) => {
     console.log('🔄 Updating event:', id, 'with data:', eventData);
     
@@ -312,44 +333,68 @@ const dbQueries = {
     }
 
     console.log('✅ Event updated successfully:', result.rows[0]);
-
-    // Handle attendees update - for form editing, we typically don't update attendees
-    // Only update attendees if explicitly provided as objects with full data
-    if (eventData.attendees && Array.isArray(eventData.attendees)) {
-      console.log('📝 Updating attendees:', eventData.attendees);
-      
-      // Check if attendees are objects (full data) or strings (names only)
-      const hasFullAttendeeData = eventData.attendees.length > 0 && 
-        typeof eventData.attendees[0] === 'object' && 
-        eventData.attendees[0].name !== undefined;
-
-      if (hasFullAttendeeData) {
-        // Clear existing attendees only if we have full attendee data
-        await pool.query('DELETE FROM attendees WHERE event_id = $1', [id]);
-        
-        // Add new attendees
-        for (let i = 0; i < eventData.attendees.length; i++) {
-          const attendee = eventData.attendees[i];
-          await pool.query(`
-            INSERT INTO attendees (event_id, name, team, phone, role, joined_at, join_order)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
-          `, [
-            id,
-            attendee.name,
-            attendee.team || '',
-            attendee.phone || '',
-            attendee.role || 'guest',
-            attendee.joinedAt || new Date(),
-            attendee.joinOrder || i + 1
-          ]);
-        }
-        console.log('✅ Attendees updated successfully');
-      } else {
-        console.log('⚠️ Skipping attendee update - only basic event data provided');
-      }
-    }
+    console.log('ℹ️ Attendees preserved - not modified during event update');
 
     return await dbQueries.getEventById(id);
+  },
+
+  // Add new attendee to event
+  addAttendee: async (eventId, attendeeData) => {
+    console.log('� Adding attendee to event:', eventId, attendeeData);
+    
+    // Check if event exists and get current attendee count
+    const eventCheck = await pool.query('SELECT max_attendees FROM events WHERE id = $1', [eventId]);
+    if (eventCheck.rows.length === 0) {
+      console.log('❌ Event not found:', eventId);
+      return { success: false, message: 'Event not found' };
+    }
+    
+    const maxAttendees = eventCheck.rows[0].max_attendees;
+    const currentCount = await pool.query('SELECT COUNT(*) FROM attendees WHERE event_id = $1', [eventId]);
+    const attendeeCount = parseInt(currentCount.rows[0].count);
+    
+    if (maxAttendees && attendeeCount >= maxAttendees) {
+      console.log('❌ Event is full:', attendeeCount, '/', maxAttendees);
+      return { success: false, message: 'Event is full' };
+    }
+    
+    // Get next join order
+    const orderResult = await pool.query('SELECT COALESCE(MAX(join_order), 0) + 1 as next_order FROM attendees WHERE event_id = $1', [eventId]);
+    const nextOrder = orderResult.rows[0].next_order;
+    
+    const result = await pool.query(`
+      INSERT INTO attendees (event_id, name, team, phone, role, joined_at, join_order)
+      VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, $6)
+      RETURNING *
+    `, [
+      eventId,
+      attendeeData.name,
+      attendeeData.team || '',
+      attendeeData.phone || '',
+      attendeeData.role || 'guest',
+      nextOrder
+    ]);
+    
+    console.log('✅ Attendee added successfully:', result.rows[0]);
+    return { success: true, attendee: result.rows[0] };
+  },
+
+  // Remove attendee from event
+  removeAttendee: async (eventId, attendeeName) => {
+    console.log('🗑️ Removing attendee:', attendeeName, 'from event:', eventId);
+    
+    const result = await pool.query(
+      'DELETE FROM attendees WHERE event_id = $1 AND name = $2 RETURNING *',
+      [eventId, attendeeName]
+    );
+    
+    if (result.rows.length === 0) {
+      console.log('❌ Attendee not found for removal');
+      return { success: false, message: 'Attendee not found' };
+    }
+    
+    console.log('✅ Attendee removed successfully:', result.rows[0]);
+    return { success: true, removedAttendee: result.rows[0] };
   },
 
   // Delete event and all related attendees (with CASCADE)

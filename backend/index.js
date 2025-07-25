@@ -97,8 +97,10 @@ app.get('/api/', (req, res) => {
       'GET /api/events': 'Get all events',
       'GET /api/events/:id': 'Get single event by ID',
       'POST /api/events': 'Create new event',
-      'PUT /api/events/:id': 'Update event',
+      'PUT /api/events/:id': 'Update event (preserves attendees)',
       'DELETE /api/events/:id': 'Delete event',
+      'POST /api/events/:id/attendees': 'Add attendee to event',
+      'DELETE /api/events/:id/attendees/:name': 'Remove attendee from event',
       'POST /api/auth/login': 'Admin login',
       'POST /api/auth/change-password': 'Change admin password',
       'GET /api/health': 'Health check',
@@ -331,6 +333,54 @@ app.delete('/api/events/:id', async (req, res) => {
   } catch (error) {
     console.error('Error deleting event:', error);
     res.status(500).json({ error: 'Failed to delete event' });
+  }
+});
+
+// Add attendee to event
+app.post('/api/events/:id/attendees', async (req, res) => {
+  try {
+    console.log('👤 POST /api/events/:id/attendees - Add attendee request');
+    console.log('📝 Event ID:', req.params.id);
+    console.log('📝 Attendee data:', req.body);
+    
+    const result = await dbQueries.addAttendee(req.params.id, req.body);
+    
+    if (result.success) {
+      console.log('✅ Attendee added successfully');
+      // Return updated event with all attendees
+      const updatedEvent = await dbQueries.getEventById(req.params.id);
+      res.json(updatedEvent);
+    } else {
+      console.log('❌ Failed to add attendee:', result.message);
+      res.status(400).json({ error: result.message });
+    }
+  } catch (error) {
+    console.error('❌ Error adding attendee:', error);
+    res.status(500).json({ error: 'Failed to add attendee' });
+  }
+});
+
+// Remove attendee from event
+app.delete('/api/events/:id/attendees/:name', async (req, res) => {
+  try {
+    console.log('🗑️ DELETE /api/events/:id/attendees/:name - Remove attendee request');
+    console.log('📝 Event ID:', req.params.id);
+    console.log('📝 Attendee name:', req.params.name);
+    
+    const result = await dbQueries.removeAttendee(req.params.id, decodeURIComponent(req.params.name));
+    
+    if (result.success) {
+      console.log('✅ Attendee removed successfully');
+      // Return updated event with remaining attendees
+      const updatedEvent = await dbQueries.getEventById(req.params.id);
+      res.json(updatedEvent);
+    } else {
+      console.log('❌ Failed to remove attendee:', result.message);
+      res.status(404).json({ error: result.message });
+    }
+  } catch (error) {
+    console.error('❌ Error removing attendee:', error);
+    res.status(500).json({ error: 'Failed to remove attendee' });
   }
 });
 
