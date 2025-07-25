@@ -72,6 +72,7 @@ const EventForm = ({ eventId, onSuccess, onCancel }) => {
           console.log('📝 EventForm: Fetching event for editing...');
           const event = await getEvent(eventId);
           console.log('📝 EventForm: Loaded event data:', event);
+          console.log('📝 EventForm: Event maxAttendees:', event.maxAttendees, 'type:', typeof event.maxAttendees);
           
           setFormData({
             title: String(event.title || ''),
@@ -81,7 +82,7 @@ const EventForm = ({ eventId, onSuccess, onCancel }) => {
             location: String(event.location || ''),
             attendees: event.attendees || [],
             status: String(event.status || 'planned'),
-            maxAttendees: Number(event.maxAttendees) || 20
+            maxAttendees: event.maxAttendees !== undefined && event.maxAttendees !== null ? Number(event.maxAttendees) : 20
           });
           console.log('📝 EventForm: Form data set successfully');
         } catch (error) {
@@ -92,10 +93,19 @@ const EventForm = ({ eventId, onSuccess, onCancel }) => {
         }
       } else if (!isEditing) {
         try {
+          console.log('📝 EventForm: Fetching events for count...');
           const events = await getEvents();
+          console.log('📝 EventForm: Fetched events:', events, 'count:', events.length);
           setEventCount(events.length);
         } catch (error) {
-          console.error('Failed to check event count:', error);
+          console.error('❌ Failed to check event count:', error);
+          console.error('❌ Error details:', {
+            message: error.message,
+            status: error.response?.status,
+            data: error.response?.data
+          });
+          // Don't block the form if event count fails
+          setEventCount(0);
         }
       }
     };
@@ -165,13 +175,21 @@ const EventForm = ({ eventId, onSuccess, onCancel }) => {
       }
 
       // Validate max attendees
-      if (formData.maxAttendees && formData.maxAttendees > 20) {
-        setError('Maximum attendees cannot exceed 20 people.');
-        setLoading(false);
-        return;
+      if (formData.maxAttendees !== '' && formData.maxAttendees !== null && formData.maxAttendees !== undefined) {
+        const maxAttendeesNum = Number(formData.maxAttendees);
+        if (isNaN(maxAttendeesNum) || maxAttendeesNum < 0) {
+          setError('Please enter a valid number for maximum attendees.');
+          setLoading(false);
+          return;
+        }
+        if (maxAttendeesNum > 20) {
+          setError('Maximum attendees cannot exceed 20 people.');
+          setLoading(false);
+          return;
+        }
       }
 
-      // Ensure maxAttendees is properly set (respect user's input)
+      // Ensure maxAttendees is properly set (respect user's input, including 0)
       const eventData = {
         title: formData.title,
         description: formData.description,
@@ -180,7 +198,9 @@ const EventForm = ({ eventId, onSuccess, onCancel }) => {
         location: formData.location,
         attendees: formData.attendees,
         status: formData.status,
-        maxAttendees: Number(formData.maxAttendees) || 20
+        maxAttendees: formData.maxAttendees !== '' && formData.maxAttendees !== null && formData.maxAttendees !== undefined 
+          ? Number(formData.maxAttendees) 
+          : 20
       };
 
       console.log('📝 EventForm: Submitting event data:', eventData);
