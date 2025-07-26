@@ -418,6 +418,63 @@ app.get('/api/debug/users', async (req, res) => {
   }
 });
 
+// Debug route to check timezone and date calculations
+app.get('/api/debug/timezone', (req, res) => {
+  const now = new Date();
+  const pacificTime = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Los_Angeles',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  }).format(now);
+  
+  // Test event calculation for July 25, 2025 10:00 AM
+  const testEventDate = '2025-07-25';
+  const testEventTime = '10:00';
+  const [year, month, day] = testEventDate.split('-');
+  const [hours, minutes] = testEventTime.split(':');
+  const eventDateTime = new Date(year, month - 1, day, parseInt(hours), parseInt(minutes), 0);
+  const eventEndTime = new Date(eventDateTime.getTime() + (2 * 60 * 60 * 1000));
+  
+  let status;
+  if (now >= eventDateTime && now <= eventEndTime) {
+    status = 'happening';
+  } else if (now > eventEndTime) {
+    status = 'finished';
+  } else {
+    status = 'scheduled';
+  }
+  
+  res.json({
+    message: 'Timezone and date calculation debug',
+    serverTime: {
+      iso: now.toISOString(),
+      local: now.toString(),
+      pacificFormatted: pacificTime
+    },
+    testEvent: {
+      date: testEventDate,
+      time: testEventTime,
+      eventDateTime: eventDateTime.toString(),
+      eventEndTime: eventEndTime.toString(),
+      calculatedStatus: status
+    },
+    comparison: {
+      nowMillis: now.getTime(),
+      eventStartMillis: eventDateTime.getTime(),
+      eventEndMillis: eventEndTime.getTime(),
+      isAfterEventStart: now >= eventDateTime,
+      isAfterEventEnd: now > eventEndTime
+    },
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Database status endpoint
 app.get('/api/status', async (req, res) => {
   try {
@@ -507,6 +564,7 @@ app.use('*', (req, res) => {
       'GET /api/debug/frontend',
       'GET /api/debug/requests',
       'GET /api/debug/users',
+      'GET /api/debug/timezone',
       'GET /api/db-integrity'
     ],
     frontend: 'https://event-tracker-frontend-qv6e.onrender.com',
