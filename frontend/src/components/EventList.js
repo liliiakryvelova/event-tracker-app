@@ -24,15 +24,23 @@ const EventList = ({ events, loading, error, onRefresh, onEditEvent, onViewEvent
         return 'scheduled';
       }
       
-      // Validate the date first
-      const eventDate = new Date(event.date);
-      const eventTime = event.time;
+      // Handle both ISO datetime and date-only formats
+      let datePart;
+      if (event.date.includes('T')) {
+        // Full ISO datetime from database - extract date part
+        datePart = event.date.split('T')[0];
+      } else {
+        // Date-only string
+        datePart = event.date;
+      }
       
-      // Check if date is valid
-      if (isNaN(eventDate.getTime())) {
-        console.warn('Invalid date for event:', event);
+      // Validate date part format
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
+        console.warn('Invalid date format for event:', event);
         return 'scheduled';
       }
+      
+      const eventTime = event.time;
       
       // Parse time safely
       if (!eventTime || typeof eventTime !== 'string') {
@@ -55,9 +63,9 @@ const EventList = ({ events, loading, error, onRefresh, onEditEvent, onViewEvent
         return 'scheduled';
       }
       
-      // Create event datetime
-      const eventDateTime = new Date(eventDate);
-      eventDateTime.setHours(hours, minutes, 0, 0);
+      // Create event datetime as local date to avoid timezone issues
+      const [year, month, day] = datePart.split('-');
+      const eventDateTime = new Date(year, month - 1, day, hours, minutes, 0);
       
       // Check if the combined datetime is valid
       if (isNaN(eventDateTime.getTime())) {

@@ -76,8 +76,9 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
         return 'scheduled';
       }
       
-      // Create event datetime in Pacific Time using the extracted date part
-      const eventDateTime = new Date(datePart + 'T' + event.time + ':00-08:00');
+      // Create event datetime as local date to avoid timezone issues
+      const [year, month, day] = datePart.split('-');
+      const eventDateTime = new Date(year, month - 1, day, hours, minutes, 0);
       
       // Check if the combined datetime is valid
       if (isNaN(eventDateTime.getTime())) {
@@ -85,16 +86,24 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
         return 'scheduled';
       }
       
-      // Get current time in Pacific Time
+      // Get current time as local time
       const now = new Date();
-      const nowPacific = new Date(now.toLocaleString("en-US", {timeZone: "America/Los_Angeles"}));
       const eventEndTime = new Date(eventDateTime.getTime() + (2 * 60 * 60 * 1000)); // 2 hours later
       
-      if (nowPacific >= eventDateTime && nowPacific <= eventEndTime) {
+      console.log('🕐 Event status calculation:');
+      console.log('📅 Event date:', datePart, 'time:', event.time);
+      console.log('🎯 Event start:', eventDateTime.toString());
+      console.log('🏁 Event end:', eventEndTime.toString());
+      console.log('⏰ Current time:', now.toString());
+      
+      if (now >= eventDateTime && now <= eventEndTime) {
+        console.log('✅ Status: happening');
         return 'happening';
-      } else if (nowPacific > eventEndTime) {
+      } else if (now > eventEndTime) {
+        console.log('✅ Status: finished');
         return 'finished';
       } else {
+        console.log('✅ Status: scheduled');
         return 'scheduled';
       }
     } catch (error) {
