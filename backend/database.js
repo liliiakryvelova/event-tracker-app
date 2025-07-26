@@ -8,9 +8,7 @@ const pool = new Pool({
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
-// Initialize datab  // Add new attendee to event
-  addAttendee: async (eventId, attendeeData) => {
-    console.log('👤 Adding attendee to event:', eventId, attendeeData); tables
+// Initialize database
 const initializeDatabase = async () => {
   try {
     console.log('🔄 Initializing database connection...');
