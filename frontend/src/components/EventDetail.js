@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { getEvent, deleteEvent, updateEvent } from '../services/eventService';
+import { getEvent, deleteEvent, updateEvent, addAttendee } from '../services/eventService';
 import { useUser } from '../contexts/UserContext';
 
 const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
@@ -282,12 +282,8 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
         return;
       }
 
-      const updatedEvent = {
-        ...event,
-        attendees: [...event.attendees, attendeeInfo]
-      };
-
-      await updateEvent(eventId, updatedEvent);
+      // Use the proper addAttendee API endpoint
+      const updatedEvent = await addAttendee(eventId, attendeeInfo);
       setEvent(updatedEvent);
       setShowJoinForm(false);
       setGuestInfo({ name: '', team: '', phone: '' });
