@@ -255,6 +255,10 @@ app.get('/api/events/:id', async (req, res) => {
 // Create new event
 app.post('/api/events', async (req, res) => {
   try {
+    console.log('📅 CREATE EVENT - Request body:', req.body);
+    console.log('📅 CREATE EVENT - Date from frontend:', req.body.date);
+    console.log('📅 CREATE EVENT - Date type:', typeof req.body.date);
+    
     // Validate input data
     const validationErrors = validateEventData(req.body);
     if (validationErrors.length > 0) {
@@ -265,7 +269,8 @@ app.post('/api/events', async (req, res) => {
     }
     
     const newEvent = await dbQueries.createEvent(req.body);
-    console.log(`Created new event: ${newEvent.title} (ID: ${newEvent.id})`);
+    console.log(`📅 CREATE EVENT - Created new event: ${newEvent.title} (ID: ${newEvent.id})`);
+    console.log('📅 CREATE EVENT - Stored date:', newEvent.date);
     res.status(201).json(newEvent);
   } catch (error) {
     console.error('Error creating event:', error);

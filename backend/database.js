@@ -276,6 +276,9 @@ const dbQueries = {
 
   // Create new event
   createEvent: async (eventData) => {
+    // Ensure date is treated as local date, not UTC
+    const localDate = eventData.date; // Keep as YYYY-MM-DD format for PostgreSQL DATE type
+    
     const result = await pool.query(`
       INSERT INTO events (title, description, date, time, location, max_attendees, status)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -283,7 +286,7 @@ const dbQueries = {
     `, [
       eventData.title,
       eventData.description,
-      eventData.date,
+      localDate,
       eventData.time,
       eventData.location,
       eventData.maxAttendees || 20, // Default to 20 if not specified
@@ -310,6 +313,9 @@ const dbQueries = {
   updateEvent: async (id, eventData) => {
     console.log('🔄 Updating event:', id, 'with data:', eventData);
     
+    // Ensure date is treated as local date, not UTC
+    const localDate = eventData.date; // Keep as YYYY-MM-DD format for PostgreSQL DATE type
+    
     const result = await pool.query(`
       UPDATE events 
       SET title = $1, description = $2, date = $3, time = $4, location = $5, 
@@ -319,7 +325,7 @@ const dbQueries = {
     `, [
       eventData.title,
       eventData.description,
-      eventData.date,
+      localDate,
       eventData.time,
       eventData.location,
       eventData.maxAttendees || 20, // Default to 20 if not specified

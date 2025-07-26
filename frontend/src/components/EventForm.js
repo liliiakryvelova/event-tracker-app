@@ -138,10 +138,13 @@ const EventForm = ({ eventId, onSuccess, onCancel }) => {
       }
 
       // Prepare event data for submission
+      // Ensure date is sent as local date to prevent timezone conversion
+      const localDate = formData.date; // Keep as YYYY-MM-DD format
+      
       const eventData = {
         title: formData.title,
         description: formData.description,
-        date: formData.date,
+        date: localDate,
         time: formData.time,
         location: formData.location,
         status: formData.status
