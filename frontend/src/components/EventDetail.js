@@ -26,7 +26,8 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
     'Dreem Catchers',
     'Flower Power',
     'Queen Bees',
-    'Mama Mia'
+    'Mama Mia',
+    'Newforce'
   ];
 
     // Calculate event status based on date and time
