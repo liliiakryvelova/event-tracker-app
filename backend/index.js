@@ -432,21 +432,37 @@ app.get('/api/debug/timezone', (req, res) => {
     hour12: false
   }).format(now);
   
+  // Get Pacific Time as a proper Date object
+  const pacificNow = new Date(now.toLocaleString("en-US", {timeZone: "America/Los_Angeles"}));
+  
   // Test event calculation for July 25, 2025 10:00 AM
   const testEventDate = '2025-07-25';
   const testEventTime = '10:00';
   const [year, month, day] = testEventDate.split('-');
   const [hours, minutes] = testEventTime.split(':');
+  
+  // Create event datetime in Pacific timezone
   const eventDateTime = new Date(year, month - 1, day, parseInt(hours), parseInt(minutes), 0);
   const eventEndTime = new Date(eventDateTime.getTime() + (2 * 60 * 60 * 1000));
   
-  let status;
+  // Test with current server time
+  let statusWithServerTime;
   if (now >= eventDateTime && now <= eventEndTime) {
-    status = 'happening';
+    statusWithServerTime = 'happening';
   } else if (now > eventEndTime) {
-    status = 'finished';
+    statusWithServerTime = 'finished';
   } else {
-    status = 'scheduled';
+    statusWithServerTime = 'scheduled';
+  }
+  
+  // Test with Pacific time
+  let statusWithPacificTime;
+  if (pacificNow >= eventDateTime && pacificNow <= eventEndTime) {
+    statusWithPacificTime = 'happening';
+  } else if (pacificNow > eventEndTime) {
+    statusWithPacificTime = 'finished';
+  } else {
+    statusWithPacificTime = 'scheduled';
   }
   
   res.json({
@@ -454,21 +470,25 @@ app.get('/api/debug/timezone', (req, res) => {
     serverTime: {
       iso: now.toISOString(),
       local: now.toString(),
-      pacificFormatted: pacificTime
+      pacificFormatted: pacificTime,
+      pacificAsDate: pacificNow.toString()
     },
     testEvent: {
       date: testEventDate,
       time: testEventTime,
       eventDateTime: eventDateTime.toString(),
       eventEndTime: eventEndTime.toString(),
-      calculatedStatus: status
+      statusWithServerTime: statusWithServerTime,
+      statusWithPacificTime: statusWithPacificTime
     },
     comparison: {
-      nowMillis: now.getTime(),
+      serverTimeMillis: now.getTime(),
+      pacificTimeMillis: pacificNow.getTime(),
       eventStartMillis: eventDateTime.getTime(),
       eventEndMillis: eventEndTime.getTime(),
-      isAfterEventStart: now >= eventDateTime,
-      isAfterEventEnd: now > eventEndTime
+      serverTimeAfterEvent: now > eventEndTime,
+      pacificTimeAfterEvent: pacificNow > eventEndTime,
+      timeDifference: now.getTime() - pacificNow.getTime()
     },
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     timestamp: new Date().toISOString()
