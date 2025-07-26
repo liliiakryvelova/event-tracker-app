@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useUser } from '../contexts/UserContext';
 
-const Login = ({ onSuccess }) => {
+const Login = ({ onSuccess, onBack }) => {
   const { login } = useUser();
   const [formData, setFormData] = useState({
     username: '',
@@ -80,11 +80,23 @@ const Login = ({ onSuccess }) => {
             type="submit"
             className="btn btn-success"
             disabled={loading}
-            style={{ width: '100%' }}
+            style={{ width: '100%', marginBottom: '1rem' }}
           >
-            {loading ? 'Logging in...' : '� Admin Login'}
+            {loading ? 'Logging in...' : '🔐 Admin Login'}
           </button>
         </form>
+        
+        {/* Back to Events button */}
+        {onBack && (
+          <button
+            type="button"
+            onClick={onBack}
+            className="btn btn-secondary"
+            style={{ width: '100%' }}
+          >
+            ← Back to Events
+          </button>
+        )}
       </div>
     </div>
   );

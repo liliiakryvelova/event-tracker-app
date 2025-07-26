@@ -14,8 +14,52 @@ const AppContent = () => {
   const [eventsLoading, setEventsLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // State for controlling what section is visible
-  const [activeView, setActiveView] = useState('events'); // 'events', 'login', 'create', 'edit', 'detail'
+  // Get initial view based on URL
+  const getInitialView = () => {
+    const path = window.location.pathname;
+    console.log('🚦 Checking initial URL path:', path);
+    
+    if (path === '/login') {
+      console.log('🔐 Initial route: login page');
+      return 'login';
+    } else if (path === '/create') {
+      console.log('➕ Initial route: create event page');
+      return 'create';
+    } else if (path.startsWith('/edit/')) {
+      console.log('✏️ Initial route: edit event page');
+      return 'edit';
+    } else if (path.startsWith('/event/')) {
+      console.log('📋 Initial route: event detail page');
+      return 'detail';
+    }
+    
+    console.log('🏠 Initial route: events list (default)');
+    return 'events';
+  };    // State for UI navigation
+  const [activeView, setActiveView] = useState(() => {
+    const path = window.location.pathname;
+    console.log('🚦 Initializing with URL path:', path);
+    
+    // Extract event ID from URL if present
+    const editMatch = path.match(/^\/edit\/(.+)$/);
+    const eventMatch = path.match(/^\/event\/(.+)$/);
+    
+    if (editMatch) {
+      const eventId = editMatch[1];
+      console.log('✏️ Found edit route with ID:', eventId);
+      setTimeout(() => setEditingEventId(eventId), 0); // Set after component mounts
+      return 'edit';
+    }
+    
+    if (eventMatch) {
+      const eventId = eventMatch[1];
+      console.log('📋 Found event detail route with ID:', eventId);
+      setTimeout(() => setViewingEventId(eventId), 0); // Set after component mounts
+      return 'detail';
+    }
+    
+    return getInitialView();
+  });
   const [editingEventId, setEditingEventId] = useState(null);
   const [viewingEventId, setViewingEventId] = useState(null);
 
@@ -36,6 +80,38 @@ const AppContent = () => {
   useEffect(() => {
     // Always fetch events, regardless of authentication status
     fetchEvents();
+
+    // Handle browser back/forward buttons
+    const handlePopState = () => {
+      console.log('⬅️ Browser navigation detected, updating view...');
+      const path = window.location.pathname;
+      
+      if (path === '/login') {
+        setActiveView('login');
+      } else if (path === '/create') {
+        setActiveView('create');
+      } else if (path.startsWith('/edit/')) {
+        const eventId = path.split('/edit/')[1];
+        setActiveView('edit');
+        setEditingEventId(eventId);
+        setViewingEventId(null);
+      } else if (path.startsWith('/event/')) {
+        const eventId = path.split('/event/')[1];
+        setActiveView('detail');
+        setViewingEventId(eventId);
+        setEditingEventId(null);
+      } else {
+        setActiveView('events');
+        setEditingEventId(null);
+        setViewingEventId(null);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
   }, []);
 
   const refreshEvents = () => {
@@ -49,17 +125,23 @@ const AppContent = () => {
     setActiveView('events');
     setEditingEventId(null);
     setViewingEventId(null);
+    // Update URL without page reload
+    window.history.pushState({}, '', '/');
     console.log('🏠 New activeView: events');
   };
 
   const showLogin = () => {
     console.log('🔐 Navigating to login...');
     setActiveView('login');
+    // Update URL without page reload
+    window.history.pushState({}, '', '/login');
   };
 
   const showCreateEvent = () => {
     console.log('➕ Navigating to create event...');
     setActiveView('create');
+    // Update URL without page reload
+    window.history.pushState({}, '', '/create');
   };
 
   const showEditEvent = (eventId) => {
@@ -71,12 +153,16 @@ const AppContent = () => {
     setViewingEventId(null); // Clear viewing when editing
     console.log('✏️ Set editingEventId to:', eventId);
     console.log('✏️ Set activeView to: edit');
+    // Update URL without page reload
+    window.history.pushState({}, '', `/edit/${eventId}`);
   };
 
   const showEventDetail = (eventId) => {
     console.log('👁️ Navigating to event detail:', eventId);
     setViewingEventId(eventId);
     setActiveView('detail');
+    // Update URL without page reload
+    window.history.pushState({}, '', `/event/${eventId}`);
   };
 
   const handleFormSuccess = () => {
@@ -146,7 +232,10 @@ const AppContent = () => {
 
         {/* Login Section */}
         {activeView === 'login' && (
-          <Login onSuccess={handleLoginSuccess} />
+          <Login 
+            onSuccess={handleLoginSuccess}
+            onBack={showEvents}
+          />
         )}
 
         {/* Create Event Section */}
