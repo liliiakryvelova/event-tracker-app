@@ -26,11 +26,31 @@ const AppContent = () => {
       console.log('➕ Initial route: create event page');
       return 'create';
     } else if (path.startsWith('/edit/')) {
-      console.log('✏️ Initial route: edit event page');
-      return 'edit';
+      const eventId = path.split('/edit/')[1];
+      if (eventId && eventId.match(/^\d+$/)) {
+        console.log('✏️ Initial route: edit event page for ID:', eventId);
+        return 'edit';
+      } else {
+        console.log('⚠️ Invalid edit route, redirecting to events');
+        window.history.replaceState({}, '', '/');
+        return 'events';
+      }
     } else if (path.startsWith('/event/')) {
-      console.log('📋 Initial route: event detail page');
-      return 'detail';
+      const eventId = path.split('/event/')[1];
+      if (eventId && eventId.match(/^\d+$/)) {
+        console.log('📋 Initial route: event detail page for ID:', eventId);
+        return 'detail';
+      } else {
+        console.log('⚠️ Invalid event route, redirecting to events');
+        window.history.replaceState({}, '', '/');
+        return 'events';
+      }
+    }
+    
+    // For any other unknown routes, redirect to home
+    if (path !== '/') {
+      console.log('⚠️ Unknown route:', path, '- redirecting to events');
+      window.history.replaceState({}, '', '/');
     }
     
     console.log('🏠 Initial route: events list (default)');
@@ -40,22 +60,34 @@ const AppContent = () => {
     const path = window.location.pathname;
     console.log('🚦 Initializing with URL path:', path);
     
-    // Extract event ID from URL if present
+    // Extract event ID from URL if present and validate
     const editMatch = path.match(/^\/edit\/(.+)$/);
     const eventMatch = path.match(/^\/event\/(.+)$/);
     
     if (editMatch) {
       const eventId = editMatch[1];
-      console.log('✏️ Found edit route with ID:', eventId);
-      setTimeout(() => setEditingEventId(eventId), 0); // Set after component mounts
-      return 'edit';
+      if (eventId && eventId.match(/^\d+$/)) {
+        console.log('✏️ Found valid edit route with ID:', eventId);
+        setTimeout(() => setEditingEventId(eventId), 0); // Set after component mounts
+        return 'edit';
+      } else {
+        console.log('⚠️ Invalid edit event ID, redirecting to events');
+        window.history.replaceState({}, '', '/');
+        return 'events';
+      }
     }
     
     if (eventMatch) {
       const eventId = eventMatch[1];
-      console.log('📋 Found event detail route with ID:', eventId);
-      setTimeout(() => setViewingEventId(eventId), 0); // Set after component mounts
-      return 'detail';
+      if (eventId && eventId.match(/^\d+$/)) {
+        console.log('📋 Found valid event detail route with ID:', eventId);
+        setTimeout(() => setViewingEventId(eventId), 0); // Set after component mounts
+        return 'detail';
+      } else {
+        console.log('⚠️ Invalid event ID, redirecting to events');
+        window.history.replaceState({}, '', '/');
+        return 'events';
+      }
     }
     
     return getInitialView();
@@ -88,19 +120,44 @@ const AppContent = () => {
       
       if (path === '/login') {
         setActiveView('login');
+        setEditingEventId(null);
+        setViewingEventId(null);
       } else if (path === '/create') {
         setActiveView('create');
+        setEditingEventId(null);
+        setViewingEventId(null);
       } else if (path.startsWith('/edit/')) {
         const eventId = path.split('/edit/')[1];
-        setActiveView('edit');
-        setEditingEventId(eventId);
-        setViewingEventId(null);
+        if (eventId && eventId.match(/^\d+$/)) {
+          setActiveView('edit');
+          setEditingEventId(eventId);
+          setViewingEventId(null);
+        } else {
+          console.log('⚠️ Invalid edit event ID in popstate, redirecting to events');
+          window.history.replaceState({}, '', '/');
+          setActiveView('events');
+          setEditingEventId(null);
+          setViewingEventId(null);
+        }
       } else if (path.startsWith('/event/')) {
         const eventId = path.split('/event/')[1];
-        setActiveView('detail');
-        setViewingEventId(eventId);
-        setEditingEventId(null);
+        if (eventId && eventId.match(/^\d+$/)) {
+          setActiveView('detail');
+          setViewingEventId(eventId);
+          setEditingEventId(null);
+        } else {
+          console.log('⚠️ Invalid event ID in popstate, redirecting to events');
+          window.history.replaceState({}, '', '/');
+          setActiveView('events');
+          setEditingEventId(null);
+          setViewingEventId(null);
+        }
       } else {
+        // For any unknown routes, go to events
+        if (path !== '/') {
+          console.log('⚠️ Unknown route in popstate:', path, '- redirecting to events');
+          window.history.replaceState({}, '', '/');
+        }
         setActiveView('events');
         setEditingEventId(null);
         setViewingEventId(null);
@@ -113,6 +170,26 @@ const AppContent = () => {
       window.removeEventListener('popstate', handlePopState);
     };
   }, []);
+
+  // Validate event IDs when events are loaded
+  useEffect(() => {
+    if (events.length > 0) {
+      // Check if viewing/editing event ID actually exists
+      if (viewingEventId && !events.find(e => e.id === viewingEventId)) {
+        console.log('⚠️ Event ID', viewingEventId, 'not found, redirecting to events');
+        window.history.replaceState({}, '', '/');
+        setActiveView('events');
+        setViewingEventId(null);
+      }
+      
+      if (editingEventId && !events.find(e => e.id === editingEventId)) {
+        console.log('⚠️ Event ID', editingEventId, 'not found for editing, redirecting to events');
+        window.history.replaceState({}, '', '/');
+        setActiveView('events');
+        setEditingEventId(null);
+      }
+    }
+  }, [events, viewingEventId, editingEventId]);
 
   const refreshEvents = () => {
     fetchEvents();
