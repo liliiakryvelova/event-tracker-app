@@ -496,6 +496,16 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
     return <div className="loading">Loading event details...</div>;
   }
 
+  if (!eventId) {
+    return (
+      <div className="card">
+        <h2>Invalid Event</h2>
+        <p>No event ID provided or invalid URL.</p>
+        <button onClick={onBack} className="btn">Back to Events</button>
+      </div>
+    );
+  }
+
   if (error) {
     return (
       <div className="error">

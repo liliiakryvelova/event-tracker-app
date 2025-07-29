@@ -55,7 +55,21 @@ const AppContent = () => {
     
     console.log('🏠 Initial route: events list (default)');
     return 'events';
-  };    // State for UI navigation
+  };    // Get initial event IDs from URL
+  const getInitialEventIds = () => {
+    const path = window.location.pathname;
+    const editMatch = path.match(/^\/edit\/(.+)$/);
+    const eventMatch = path.match(/^\/event\/(.+)$/);
+    
+    return {
+      editingEventId: editMatch && editMatch[1].match(/^\d+$/) ? editMatch[1] : null,
+      viewingEventId: eventMatch && eventMatch[1].match(/^\d+$/) ? eventMatch[1] : null
+    };
+  };
+
+  const initialEventIds = getInitialEventIds();
+
+    // State for UI navigation
   const [activeView, setActiveView] = useState(() => {
     const path = window.location.pathname;
     console.log('🚦 Initializing with URL path:', path);
@@ -68,7 +82,6 @@ const AppContent = () => {
       const eventId = editMatch[1];
       if (eventId && eventId.match(/^\d+$/)) {
         console.log('✏️ Found valid edit route with ID:', eventId);
-        setTimeout(() => setEditingEventId(eventId), 0); // Set after component mounts
         return 'edit';
       } else {
         console.log('⚠️ Invalid edit event ID, redirecting to events');
@@ -81,7 +94,6 @@ const AppContent = () => {
       const eventId = eventMatch[1];
       if (eventId && eventId.match(/^\d+$/)) {
         console.log('📋 Found valid event detail route with ID:', eventId);
-        setTimeout(() => setViewingEventId(eventId), 0); // Set after component mounts
         return 'detail';
       } else {
         console.log('⚠️ Invalid event ID, redirecting to events');
@@ -92,8 +104,8 @@ const AppContent = () => {
     
     return getInitialView();
   });
-  const [editingEventId, setEditingEventId] = useState(null);
-  const [viewingEventId, setViewingEventId] = useState(null);
+  const [editingEventId, setEditingEventId] = useState(initialEventIds.editingEventId);
+  const [viewingEventId, setViewingEventId] = useState(initialEventIds.viewingEventId);
 
   const fetchEvents = async () => {
     try {
@@ -333,7 +345,7 @@ const AppContent = () => {
         )}
 
         {/* Event Detail Section */}
-        {activeView === 'detail' && viewingEventId && (
+        {activeView === 'detail' && (
           <EventDetail 
             eventId={viewingEventId}
             onRefresh={refreshEvents}
