@@ -47,15 +47,10 @@ const AppContent = () => {
     if (path.startsWith('/event/')) {
       const eventId = path.substring(7); // Remove '/event/'
       console.log('🔍 DEBUG: event eventId extracted:', eventId, 'type:', typeof eventId);
-      if (eventId && /^\d+$/.test(eventId)) {
-        console.log('📋 Initial route: event detail page for ID:', eventId);
-        return 'detail';
-      } else {
-        console.log('⚠️ Invalid event route, redirecting to events');
-        console.log('⚠️ DEBUG: eventId was:', eventId);
-        window.history.replaceState({}, '', '/');
-        return 'events';
-      }
+      // Always redirect event URLs to main page to avoid SPA routing issues
+      console.log('📋 Event route detected - redirecting to main page for simplicity');
+      window.history.replaceState({}, '', '/');
+      return 'events';
     }
     
     // For root URL or any other unknown routes, show events
@@ -80,14 +75,7 @@ const AppContent = () => {
       };
     }
     
-    if (path.startsWith('/event/')) {
-      const eventId = path.substring(7); // Remove '/event/'
-      return {
-        editingEventId: null,
-        viewingEventId: eventId && /^\d+$/.test(eventId) ? eventId : null
-      };
-    }
-    
+    // Event URLs redirect to main page, so no viewing ID needed
     return {
       editingEventId: null,
       viewingEventId: null
@@ -150,19 +138,12 @@ const AppContent = () => {
           setViewingEventId(null);
         }
       } else if (path.startsWith('/event/')) {
-        const eventId = path.substring(7); // Remove '/event/'
-        if (eventId && /^\d+$/.test(eventId)) {
-          console.log('⬅️ Navigating to event detail via popstate:', eventId);
-          setActiveView('detail');
-          setViewingEventId(eventId);
-          setEditingEventId(null);
-        } else {
-          console.log('⚠️ Invalid event ID in popstate, redirecting to events');
-          window.history.replaceState({}, '', '/');
-          setActiveView('events');
-          setEditingEventId(null);
-          setViewingEventId(null);
-        }
+        // Always redirect event URLs to main page via popstate
+        console.log('⬅️ Event URL detected in popstate - redirecting to main page');
+        window.history.replaceState({}, '', '/');
+        setActiveView('events');
+        setEditingEventId(null);
+        setViewingEventId(null);
       } else {
         // For root URL or any unknown routes, go to events
         console.log('⬅️ Navigating to events via popstate (root or unknown route)');
