@@ -158,27 +158,6 @@ const AppContent = () => {
     };
   }, []);
 
-  // Validate event IDs when events are loaded
-  useEffect(() => {
-    // Only validate after events are loaded and we're not currently loading
-    if (events.length > 0 && !eventsLoading) {
-      // Check if viewing/editing event ID actually exists
-      if (viewingEventId && !events.find(e => e.id === viewingEventId)) {
-        console.log('⚠️ Event ID', viewingEventId, 'not found, redirecting to events');
-        window.history.replaceState({}, '', '/');
-        setActiveView('events');
-        setViewingEventId(null);
-      }
-      
-      if (editingEventId && !events.find(e => e.id === editingEventId)) {
-        console.log('⚠️ Event ID', editingEventId, 'not found for editing, redirecting to events');
-        window.history.replaceState({}, '', '/');
-        setActiveView('events');
-        setEditingEventId(null);
-      }
-    }
-  }, [events, viewingEventId, editingEventId, eventsLoading]);
-
   const refreshEvents = () => {
     fetchEvents();
   };
