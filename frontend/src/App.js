@@ -19,29 +19,40 @@ const AppContent = () => {
     const path = window.location.pathname;
     console.log('🚦 Checking initial URL path:', path);
     
+    // Handle each route explicitly
     if (path === '/login') {
       console.log('🔐 Initial route: login page');
       return 'login';
-    } else if (path === '/create') {
+    }
+    
+    if (path === '/create') {
       console.log('➕ Initial route: create event page');
       return 'create';
-    } else if (path.startsWith('/edit/')) {
-      const eventId = path.split('/edit/')[1];
-      if (eventId && eventId.match(/^\d+$/)) {
+    }
+    
+    if (path.startsWith('/edit/')) {
+      const eventId = path.substring(6); // Remove '/edit/'
+      console.log('🔍 DEBUG: edit eventId extracted:', eventId, 'type:', typeof eventId);
+      if (eventId && /^\d+$/.test(eventId)) {
         console.log('✏️ Initial route: edit event page for ID:', eventId);
         return 'edit';
       } else {
         console.log('⚠️ Invalid edit route, redirecting to events');
+        console.log('⚠️ DEBUG: eventId was:', eventId);
         window.history.replaceState({}, '', '/');
         return 'events';
       }
-    } else if (path.startsWith('/event/')) {
-      const eventId = path.split('/event/')[1];
-      if (eventId && eventId.match(/^\d+$/)) {
+    }
+    
+    if (path.startsWith('/event/')) {
+      const eventId = path.substring(7); // Remove '/event/'
+      console.log('🔍 DEBUG: event eventId extracted:', eventId, 'type:', typeof eventId);
+      if (eventId && /^\d+$/.test(eventId)) {
         console.log('📋 Initial route: event detail page for ID:', eventId);
         return 'detail';
       } else {
         console.log('⚠️ Invalid event route, redirecting to events');
+        console.log('⚠️ DEBUG: eventId was:', eventId);
         window.history.replaceState({}, '', '/');
         return 'events';
       }
@@ -60,12 +71,26 @@ const AppContent = () => {
   // Get initial event IDs from URL
   const getInitialEventIds = () => {
     const path = window.location.pathname;
-    const editMatch = path.match(/^\/edit\/(.+)$/);
-    const eventMatch = path.match(/^\/event\/(.+)$/);
+    
+    if (path.startsWith('/edit/')) {
+      const eventId = path.substring(6); // Remove '/edit/'
+      return {
+        editingEventId: eventId && /^\d+$/.test(eventId) ? eventId : null,
+        viewingEventId: null
+      };
+    }
+    
+    if (path.startsWith('/event/')) {
+      const eventId = path.substring(7); // Remove '/event/'
+      return {
+        editingEventId: null,
+        viewingEventId: eventId && /^\d+$/.test(eventId) ? eventId : null
+      };
+    }
     
     return {
-      editingEventId: editMatch && editMatch[1].match(/^\d+$/) ? editMatch[1] : null,
-      viewingEventId: eventMatch && eventMatch[1].match(/^\d+$/) ? eventMatch[1] : null
+      editingEventId: null,
+      viewingEventId: null
     };
   };
 
@@ -111,8 +136,8 @@ const AppContent = () => {
         setEditingEventId(null);
         setViewingEventId(null);
       } else if (path.startsWith('/edit/')) {
-        const eventId = path.split('/edit/')[1];
-        if (eventId && eventId.match(/^\d+$/)) {
+        const eventId = path.substring(6); // Remove '/edit/'
+        if (eventId && /^\d+$/.test(eventId)) {
           console.log('⬅️ Navigating to edit event via popstate:', eventId);
           setActiveView('edit');
           setEditingEventId(eventId);
@@ -125,8 +150,8 @@ const AppContent = () => {
           setViewingEventId(null);
         }
       } else if (path.startsWith('/event/')) {
-        const eventId = path.split('/event/')[1];
-        if (eventId && eventId.match(/^\d+$/)) {
+        const eventId = path.substring(7); // Remove '/event/'
+        if (eventId && /^\d+$/.test(eventId)) {
           console.log('⬅️ Navigating to event detail via popstate:', eventId);
           setActiveView('detail');
           setViewingEventId(eventId);
