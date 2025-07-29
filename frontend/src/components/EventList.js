@@ -159,6 +159,42 @@ const EventList = ({ events, loading, error, onRefresh, onEditEvent, onViewEvent
     });
   };
 
+  // Sort events by date (closest first)
+  const sortEventsByDate = (events) => {
+    return [...events].sort((a, b) => {
+      // Parse event dates and times
+      const getEventDateTime = (event) => {
+        if (!event?.date || !event?.time) {
+          return new Date('9999-12-31'); // Put events without date/time at the end
+        }
+        
+        // Handle both ISO datetime and date-only formats
+        let datePart;
+        if (event.date.includes('T')) {
+          datePart = event.date.split('T')[0];
+        } else {
+          datePart = event.date;
+        }
+        
+        // Combine date and time
+        const dateTimeString = `${datePart}T${event.time}`;
+        const eventDateTime = new Date(dateTimeString);
+        
+        // If invalid date, put at the end
+        return isNaN(eventDateTime.getTime()) ? new Date('9999-12-31') : eventDateTime;
+      };
+      
+      const dateA = getEventDateTime(a);
+      const dateB = getEventDateTime(b);
+      
+      // Sort by date/time (earliest first)
+      return dateA - dateB;
+    });
+  };
+
+  // Get sorted events
+  const sortedEvents = sortEventsByDate(events);
+
   if (loading) {
     return <div className="loading">Loading events...</div>;
   }
@@ -188,14 +224,14 @@ const EventList = ({ events, loading, error, onRefresh, onEditEvent, onViewEvent
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h2>All Events ({events.length}/3)</h2>
+        <h2>All Events ({sortedEvents.length}/3)</h2>
         <div>
           {!isAuthenticated() && (
             <span style={{ fontSize: '0.9rem', color: '#666' }}>
               You're browsing as a guest - you can view and join events
             </span>
           )}
-          {events.length >= 3 && canCreate() && (
+          {sortedEvents.length >= 3 && canCreate() && (
             <span style={{ fontSize: '0.9rem', color: '#e74c3c', fontWeight: 'bold' }}>
               ⚠️ Event limit reached (3/3)
             </span>
@@ -207,22 +243,22 @@ const EventList = ({ events, loading, error, onRefresh, onEditEvent, onViewEvent
         className="events-grid" 
         style={{
           display: 'grid',
-          gridTemplateColumns: events.length === 1 
+          gridTemplateColumns: sortedEvents.length === 1 
             ? '1fr' 
-            : events.length === 2 
+            : sortedEvents.length === 2 
               ? 'repeat(2, 1fr)' 
               : 'repeat(auto-fit, minmax(350px, 1fr))',
           gap: '1.5rem',
           marginTop: '2rem',
-          justifyItems: events.length === 1 ? 'center' : 'stretch'
+          justifyItems: sortedEvents.length === 1 ? 'center' : 'stretch'
         }}
       >
-        {events.map((event) => (
+        {sortedEvents.map((event) => (
           <div 
             key={event.id} 
             className="event-card"
             style={{
-              maxWidth: events.length === 1 ? '500px' : 'none',
+              maxWidth: sortedEvents.length === 1 ? '500px' : 'none',
               width: '100%'
             }}
           >
