@@ -185,7 +185,8 @@ const AppContent = () => {
 
   // Validate event IDs when events are loaded
   useEffect(() => {
-    if (events.length > 0) {
+    // Only validate after events are loaded and we're not currently loading
+    if (events.length > 0 && !eventsLoading) {
       // Check if viewing/editing event ID actually exists
       if (viewingEventId && !events.find(e => e.id === viewingEventId)) {
         console.log('⚠️ Event ID', viewingEventId, 'not found, redirecting to events');
@@ -201,7 +202,7 @@ const AppContent = () => {
         setEditingEventId(null);
       }
     }
-  }, [events, viewingEventId, editingEventId]);
+  }, [events, viewingEventId, editingEventId, eventsLoading]);
 
   const refreshEvents = () => {
     fetchEvents();
