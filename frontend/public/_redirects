@@ -1,4 +1,0 @@
-# SPA fallback: redirect all routes to index.html
-# This ensures React Router handles all routing client-side
-# Updated: Fix for direct URL access and page refresh - Force deployment
-/*    /index.html   200
