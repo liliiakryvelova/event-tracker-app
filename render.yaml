@@ -11,6 +11,9 @@ services:
         destination: /index.html
     headers:
       - path: /*
+        name: Cache-Control
+        value: no-cache
+      - path: /*
         name: Strict-Transport-Security
         value: max-age=31536000; includeSubDomains; preload
       - path: /*
