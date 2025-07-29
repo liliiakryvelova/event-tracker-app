@@ -47,15 +47,17 @@ const AppContent = () => {
       }
     }
     
-    // For any other unknown routes, redirect to home
+    // For root URL or any other unknown routes, show events
     if (path !== '/') {
       console.log('⚠️ Unknown route:', path, '- redirecting to events');
       window.history.replaceState({}, '', '/');
     }
     
-    console.log('🏠 Initial route: events list (default)');
+    console.log('🏠 Default route: events list');
     return 'events';
-  };    // Get initial event IDs from URL
+  };
+
+  // Get initial event IDs from URL
   const getInitialEventIds = () => {
     const path = window.location.pathname;
     const editMatch = path.match(/^\/edit\/(.+)$/);
@@ -69,41 +71,8 @@ const AppContent = () => {
 
   const initialEventIds = getInitialEventIds();
 
-    // State for UI navigation
-  const [activeView, setActiveView] = useState(() => {
-    const path = window.location.pathname;
-    console.log('🚦 Initializing with URL path:', path);
-    
-    // Extract event ID from URL if present and validate
-    const editMatch = path.match(/^\/edit\/(.+)$/);
-    const eventMatch = path.match(/^\/event\/(.+)$/);
-    
-    if (editMatch) {
-      const eventId = editMatch[1];
-      if (eventId && eventId.match(/^\d+$/)) {
-        console.log('✏️ Found valid edit route with ID:', eventId);
-        return 'edit';
-      } else {
-        console.log('⚠️ Invalid edit event ID, redirecting to events');
-        window.history.replaceState({}, '', '/');
-        return 'events';
-      }
-    }
-    
-    if (eventMatch) {
-      const eventId = eventMatch[1];
-      if (eventId && eventId.match(/^\d+$/)) {
-        console.log('📋 Found valid event detail route with ID:', eventId);
-        return 'detail';
-      } else {
-        console.log('⚠️ Invalid event ID, redirecting to events');
-        window.history.replaceState({}, '', '/');
-        return 'events';
-      }
-    }
-    
-    return getInitialView();
-  });
+  // State for UI navigation
+  const [activeView, setActiveView] = useState(getInitialView);
   const [editingEventId, setEditingEventId] = useState(initialEventIds.editingEventId);
   const [viewingEventId, setViewingEventId] = useState(initialEventIds.viewingEventId);
 
@@ -129,18 +98,22 @@ const AppContent = () => {
     const handlePopState = () => {
       console.log('⬅️ Browser navigation detected, updating view...');
       const path = window.location.pathname;
+      console.log('⬅️ Current path:', path);
       
       if (path === '/login') {
+        console.log('⬅️ Navigating to login via popstate');
         setActiveView('login');
         setEditingEventId(null);
         setViewingEventId(null);
       } else if (path === '/create') {
+        console.log('⬅️ Navigating to create via popstate');
         setActiveView('create');
         setEditingEventId(null);
         setViewingEventId(null);
       } else if (path.startsWith('/edit/')) {
         const eventId = path.split('/edit/')[1];
         if (eventId && eventId.match(/^\d+$/)) {
+          console.log('⬅️ Navigating to edit event via popstate:', eventId);
           setActiveView('edit');
           setEditingEventId(eventId);
           setViewingEventId(null);
@@ -154,6 +127,7 @@ const AppContent = () => {
       } else if (path.startsWith('/event/')) {
         const eventId = path.split('/event/')[1];
         if (eventId && eventId.match(/^\d+$/)) {
+          console.log('⬅️ Navigating to event detail via popstate:', eventId);
           setActiveView('detail');
           setViewingEventId(eventId);
           setEditingEventId(null);
@@ -165,9 +139,10 @@ const AppContent = () => {
           setViewingEventId(null);
         }
       } else {
-        // For any unknown routes, go to events
+        // For root URL or any unknown routes, go to events
+        console.log('⬅️ Navigating to events via popstate (root or unknown route)');
         if (path !== '/') {
-          console.log('⚠️ Unknown route in popstate:', path, '- redirecting to events');
+          console.log('⚠️ Unknown route in popstate:', path, '- redirecting to root');
           window.history.replaceState({}, '', '/');
         }
         setActiveView('events');
