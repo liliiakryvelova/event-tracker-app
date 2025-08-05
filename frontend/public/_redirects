@@ -1,1 +1,8 @@
+# Redirect all routes to index.html for SPA
 /*    /index.html   200
+
+# Specific event routes
+/event/*    /index.html   200
+/edit/*     /index.html   200
+/create     /index.html   200
+/login      /index.html   200

@@ -58,7 +58,7 @@ const Login = ({ onSuccess, onBack }) => {
               onChange={handleChange}
               required
               placeholder="Admin username"
-              autoComplete="username"
+              autoComplete="off"
             />
           </div>
 
@@ -72,7 +72,7 @@ const Login = ({ onSuccess, onBack }) => {
               onChange={handleChange}
               required
               placeholder="Admin password"
-              autoComplete="current-password"
+              autoComplete="off"
             />
           </div>
 

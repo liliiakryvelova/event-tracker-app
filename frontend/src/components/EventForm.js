@@ -229,6 +229,7 @@ const EventForm = ({ eventId, onSuccess, onCancel }) => {
             onChange={handleChange}
             required
             placeholder="Enter event title"
+            autocomplete="off"
           />
         </div>
 
@@ -241,6 +242,7 @@ const EventForm = ({ eventId, onSuccess, onCancel }) => {
             onChange={handleChange}
             placeholder="Enter event description"
             rows={4}
+            autoComplete="off"
           />
         </div>
 
@@ -254,6 +256,7 @@ const EventForm = ({ eventId, onSuccess, onCancel }) => {
               value={formData.date}
               onChange={handleChange}
               required
+              autocomplete="off"
             />
           </div>
 
@@ -266,6 +269,7 @@ const EventForm = ({ eventId, onSuccess, onCancel }) => {
               value={formData.time}
               onChange={handleChange}
               required
+              autocomplete="off"
             />
           </div>
         </div>
@@ -280,6 +284,7 @@ const EventForm = ({ eventId, onSuccess, onCancel }) => {
             onChange={handleChange}
             required
             placeholder="Enter event location"
+            autocomplete="off"
           />
         </div>
 

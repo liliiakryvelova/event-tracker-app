@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { getEvent, deleteEvent, updateEvent, addAttendee } from '../services/eventService';
+import { getEvent, deleteEvent, updateEvent, addAttendee, removeAttendee } from '../services/eventService';
 import { useUser } from '../contexts/UserContext';
 
 const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
@@ -347,35 +347,29 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
     
     if (window.confirm(`Are you sure you want to remove "${attendeeName}" from "${event.title}"?`)) {
       try {
-        let updatedEvent;
+        console.log('🗑️ Removing attendee:', attendeeName, 'from event:', eventId);
         
-        if (typeof attendeeToRemove === 'string') {
-          // Legacy format - remove by name
-          updatedEvent = {
-            ...event,
-            attendees: event.attendees.filter(attendee => attendee !== attendeeToRemove)
-          };
-        } else {
-          // New format - remove by phone or name
-          updatedEvent = {
-            ...event,
-            attendees: event.attendees.filter(attendee => {
-              if (typeof attendee === 'string') {
-                return attendee !== attendeeToRemove.name;
-              }
-              return attendee.phone !== attendeeToRemove.phone;
-            })
-          };
-        }
-
-        await updateEvent(eventId, updatedEvent);
+        // Use the dedicated removeAttendee API endpoint
+        const updatedEvent = await removeAttendee(eventId, attendeeName);
+        
+        console.log('✅ Attendee removed successfully, updated event:', updatedEvent);
+        
+        // Update the local state with the response from the server
         setEvent(updatedEvent);
         onRefresh();
         
         alert(`"${attendeeName}" has been removed from the event.`);
       } catch (error) {
-        console.error('Remove attendee error:', error);
-        alert('Failed to remove attendee. Please try again.');
+        console.error('❌ Remove attendee error:', error);
+        
+        // Provide more specific error messages
+        if (error.response?.status === 404) {
+          alert('Attendee not found or already removed.');
+        } else if (error.response?.status === 500) {
+          alert('Server error while removing attendee. Please try again.');
+        } else {
+          alert('Failed to remove attendee. Please try again.');
+        }
       }
     }
   };
@@ -713,6 +707,7 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
                     value={guestInfo.name}
                     onChange={(e) => setGuestInfo(prev => ({ ...prev, name: e.target.value }))}
                     placeholder="Enter your full name"
+                    autoComplete="off"
                   />
                 </div>
 
@@ -724,6 +719,7 @@ const EventDetail = ({ eventId, onRefresh, onEdit, onBack }) => {
                     value={guestInfo.phone}
                     onChange={(e) => setGuestInfo(prev => ({ ...prev, phone: e.target.value }))}
                     placeholder="Enter your phone number (e.g., +1234567890)"
+                    autoComplete="off"
                   />
                   <small style={{ color: '#666', fontSize: '0.8rem', display: 'block', marginTop: '0.25rem' }}>
                     We use phone numbers to prevent duplicate registrations

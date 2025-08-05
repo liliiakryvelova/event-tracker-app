@@ -1,93 +1,105 @@
-# Event Tracker App
+# 🏐 Catchball Event Tracker App
 
-A full-stack event tracking application with React frontend, Node.js backend, PostgreSQL database, and real-time features.
+A full-stack event management application designed for organizing Catchball (volleyball) events in Seattle. Built with React frontend, Node.js/Express backend, PostgreSQL database, and comprehensive admin controls.
 
-## 🚀 Demo Access
+## 🚀 Live Demo
 
-**Live Demo:** [https://event-tracker-frontend-qv6e.onrender.com/](https://event-tracker-frontend-qv6e.onrender.com/)
+**Production URL:** [https://event-tracker-frontend-qv6e.onrender.com/](https://event-tracker-frontend-qv6e.onrender.com/)
 
-### Demo Credentials:
+### Demo Credentials
 - **Username:** `admin`
 - **Password:** `CatchBall2025!Secure#Admin`
-- **Role:** Admin (Can create/edit/delete events)
+- **Role:** Administrator (Full access to all features)
 
-### Access Levels:
-- 🌐 **Everyone** (including guests): View events, join/leave events
-- 👑 **Admin only**: Create events, edit events, delete events, manage attendees
+### Access Levels
+- 🌐 **Guest Users**: View events, join/leave events, browse event details
+- 👑 **Administrators**: Create events, edit events, delete events, manage attendees, full system access
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 event-tracker-app/
-├── backend/           # Node.js Express server
-│   └── index.js      # Main server file with REST API
-├── frontend/         # React application
-│   ├── public/       # Static files
-│   ├── src/          # React source code
-│   │   ├── components/   # React components
-│   │   ├── services/     # API service functions
-│   │   ├── App.js       # Main App component
-│   │   ├── index.js     # React entry point
-│   │   └── index.css    # Global styles
-│   └── package.json  # Frontend dependencies
-├── db/               # JSON database
-│   └── events.json   # Event data storage
-├── bot/              # Bot functionality
-│   └── createGroup.js # Event grouping bot
-└── package.json      # Root dependencies
+├── backend/              # Node.js Express API server
+│   ├── index.js         # Main server file with REST API endpoints
+│   └── database.js      # PostgreSQL database configuration and queries
+├── frontend/            # React single-page application
+│   ├── public/          # Static assets and configuration files
+│   ├── src/             # React source code
+│   │   ├── components/  # Reusable React components
+│   │   ├── contexts/    # React context providers (UserContext)
+│   │   ├── services/    # API service functions and HTTP client
+│   │   ├── App.js       # Main application component with routing
+│   │   ├── index.js     # React application entry point
+│   │   └── index.css    # Global styles and CSS variables
+│   └── package.json     # Frontend dependencies and scripts
+├── db/                  # Legacy JSON database (deprecated)
+│   └── events.json      # Legacy event data storage
+├── bot/                 # Bot functionality (future enhancement)
+│   └── createGroup.js   # Event grouping automation
+├── render.yaml          # Render.com deployment configuration
+├── railway.json         # Railway deployment configuration
+└── package.json         # Root dependencies and build scripts
 ```
 
-## Features
+## ✨ Core Features
 
-### Backend (Node.js + Express)
-- REST API for event management (CRUD operations)
-- JSON file-based database
-- CORS enabled for frontend communication
-- Error handling and validation
-- Health check endpoint
+### 🎯 Event Management System
+- **Event Creation**: Administrators can create detailed events with date, time, location, and attendee capacity
+- **Real-time Status Tracking**: Events display live status indicators (Scheduled, Live Now, Finished)
+- **Smart Event Sorting**: Automatic chronological sorting with closest events displayed first
+- **Capacity Management**: Configurable attendee limits with visual "FULL" indicators
+- **Event Lifecycle**: Complete CRUD operations with validation and error handling
 
-### Frontend (React)
-- Modern React with hooks
-- React Router for navigation
-- Responsive design with CSS Grid
-- Event listing, creation, editing, and deletion
-- Real-time status updates
-- Attendee management
-- Clean and intuitive UI
-- **User Authentication & Role-based Access Control**
-- **Admin-only Edit/Delete permissions**
+### 👥 Attendee Management
+- **Quick Registration**: Streamlined join/leave functionality for event participants
+- **Team Assignment**: Predefined team selection (Good Vibes, Sunflowers, Thunders, Dream Catchers, etc.)
+- **Contact Collection**: Name and phone number capture for event coordination
+- **Administrative Controls**: Admin-level attendee removal and management capabilities
+- **Real-time Updates**: Live attendee count updates and capacity tracking
 
-### Bot Functionality
-- Event grouping by criteria (date, status, location, etc.)
-- Automated event categorization
-- Group management (create, update, delete)
-- Filter events by various parameters
+### 🔐 Security & Authentication
+- **Role-based Access Control**: Secure admin authentication with bcrypt password hashing
+- **Guest Access**: Public event viewing and participation without mandatory registration
+- **Protected Operations**: Admin-only access to event creation, editing, and deletion
+- **Session Management**: Persistent login state with secure user context
+- **Input Security**: Autocomplete disabled on all forms to prevent data leakage
 
-### Database
-- JSON-based storage (events.json)
-- Structured event data with metadata
-- Easy to read and modify
+### 📱 User Experience
+- **Responsive Design**: Mobile-first approach with CSS Grid and Flexbox layouts
+- **Real-time Interface**: Live status badges and automatic content refreshing
+- **Single-page Application**: Smooth navigation without page reloads
+- **Intuitive Design**: Clean, modern interface with consistent visual hierarchy
+- **Error Handling**: Comprehensive user feedback and graceful error recovery
 
-## Getting Started
+## 🛠️ Technology Stack
 
-### Prerequisites
-- Node.js (v14 or higher)
-- npm or yarn
+### Frontend Technologies
+- **React 18.2.0**: Modern functional components with hooks and context API
+- **React Router DOM 7.7.1**: Client-side routing and single-page application navigation
+- **Axios 1.4.0**: HTTP client for API communication and request handling
+- **CSS Grid & Flexbox**: Responsive layout system with mobile-first design
+- **React Scripts 5.0.1**: Build tooling, development server, and optimization
 
-### Installation
+### Backend Technologies
+- **Node.js**: JavaScript runtime environment for server-side execution
+- **Express.js**: Minimal web application framework for REST API development
+- **PostgreSQL**: Relational database with ACID compliance and structured schemas
+- **bcrypt 6.0.0**: Password hashing library with salt rounds for security
+- **CORS 2.8.5**: Cross-origin resource sharing middleware
+- **pg (node-postgres)**: PostgreSQL client library for Node.js
 
-1. **Install root dependencies:**
-   ```bash
-   cd event-tracker-app
-   npm install
-   ```
+### Database Architecture
+- **Users Table**: Administrator authentication with encrypted password storage
+- **Events Table**: Event details, metadata, timestamps, and status tracking
+- **Attendees Table**: Participant information with foreign key relationships
+- **Relational Design**: Normalized structure with CASCADE operations and referential integrity
 
-2. **Install frontend dependencies:**
-   ```bash
-   cd frontend
-   npm install
-   cd ..
-   ```
+### Development & Deployment
+- **nodemon**: Development server with hot-reload functionality
+- **concurrently**: Tool for running multiple development processes simultaneously
+- **dotenv**: Environment variable management for configuration
+- **Render.com**: Cloud hosting platform for both frontend and backend services
+- **GitHub**: Version control and collaborative development
 
 ### Running the Application
 

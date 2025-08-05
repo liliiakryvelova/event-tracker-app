@@ -7,20 +7,8 @@ services:
     staticPublishPath: ./frontend/build
     routes:
       - type: rewrite
-        source: /*
-        destination: /index.html
-      - type: rewrite
-        source: /event/*
-        destination: /index.html
-      - type: rewrite
-        source: /edit/*
-        destination: /index.html
-      - type: rewrite
-        source: /create
-        destination: /index.html
-      - type: rewrite
-        source: /login
-        destination: /index.html
+        source: "/*"
+        destination: "/index.html"
     headers:
       - path: /*
         name: Cache-Control
