@@ -4,8 +4,8 @@ import { useUser } from '../contexts/UserContext';
 const Login = ({ onSuccess, onBack }) => {
   const { login } = useUser();
   const [formData, setFormData] = useState({
-    username: '',
-    password: ''
+    username: 'admin',
+    password: 'CatchBall2025!Secure#Admin'
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
