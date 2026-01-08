@@ -50,9 +50,16 @@ const EventForm = ({ eventId, onSuccess, onCancel }) => {
     console.log('📝 canEdit():', canEdit());
     console.log('📝 hasPermission:', hasPermission);
     
-    if (!hasPermission && onCancel) {
-      console.log('📝 No permission, calling onCancel');
-      onCancel(); // Return to events list if not authenticated
+    if (!hasPermission) {
+      console.log('📝 No permission detected');
+      if (onCancel) {
+        console.log('📝 Calling onCancel due to lack of permission');
+        onCancel(); // Return to events list if not authenticated
+      } else {
+        console.log('⚠️ No onCancel handler, navigating manually');
+        window.history.pushState({}, '', '/');
+        window.location.reload();
+      }
     }
   }, [canCreate, canEdit, isEditing, onCancel]);
 
@@ -183,8 +190,16 @@ const EventForm = ({ eventId, onSuccess, onCancel }) => {
   };
 
   const handleCancel = () => {
+    console.log('❌ Cancel button clicked');
+    console.log('❌ onCancel function:', onCancel);
     if (onCancel) {
+      console.log('❌ Calling onCancel...');
       onCancel(); // Return to events list
+    } else {
+      console.log('⚠️ No onCancel handler provided, navigating manually');
+      // Fallback: navigate to home if onCancel is not provided
+      window.history.pushState({}, '', '/');
+      window.location.reload(); // Reload to show events list
     }
   };
 
