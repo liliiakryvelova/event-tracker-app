@@ -5,24 +5,50 @@ const bcrypt = require('bcrypt');
 // Database configuration
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL || 'postgresql://localhost:5432/eventtracker',
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  // Connection pool settings for production stability
+  max: 20, // Maximum number of clients in the pool
+  idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
+  connectionTimeoutMillis: 10000, // Return an error after 10 seconds if connection cannot be established
+  // Keep connections alive
+  keepAlive: true,
+  keepAliveInitialDelayMillis: 10000
+});
+
+// Handle pool errors
+pool.on('error', (err, client) => {
+  console.error('❌ Unexpected error on idle client', err);
+  // Don't exit the process, just log the error
 });
 
 // Initialize database
 const initializeDatabase = async () => {
+  let client;
   try {
     console.log('🔄 Initializing database connection...');
     console.log('🔗 Database URL:', process.env.DATABASE_URL ? 'SET' : 'NOT SET');
     console.log('🌍 Environment:', process.env.NODE_ENV);
     
-    // Test database connection first
-    const client = await pool.connect();
-    console.log('✅ Database connection successful');
-    client.release();
+    // Test database connection first with retry logic
+    let retries = 5;
+    let connected = false;
+    
+    while (retries > 0 && !connected) {
+      try {
+        client = await pool.connect();
+        console.log('✅ Database connection successful');
+        connected = true;
+      } catch (err) {
+        retries--;
+        console.log(`⚠️ Connection attempt failed. Retries left: ${retries}`);
+        if (retries === 0) throw err;
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds before retry
+      }
+    }
     
     // Create users table for admin authentication
     console.log('📝 Creating users table...');
-    await pool.query(`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
         username VARCHAR(50) UNIQUE NOT NULL,
@@ -36,7 +62,7 @@ const initializeDatabase = async () => {
     `);
 
     console.log('📝 Creating events table...');
-    await pool.query(`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS events (
         id SERIAL PRIMARY KEY,
         title VARCHAR(255) NOT NULL,
@@ -52,7 +78,7 @@ const initializeDatabase = async () => {
     `);
 
     console.log('📝 Creating attendees table...');
-    await pool.query(`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS attendees (
         id SERIAL PRIMARY KEY,
         event_id INTEGER REFERENCES events(id) ON DELETE CASCADE,
@@ -65,17 +91,24 @@ const initializeDatabase = async () => {
       )
     `);
 
+    // Release the client back to the pool
+    client.release();
+
     // Create default admin user if none exists
     console.log('👤 Checking/creating default admin user...');
     await createDefaultAdminUser();
 
     console.log('✅ Database tables initialized successfully');
   } catch (error) {
+    if (client) {
+      client.release();
+    }
     console.error('❌ Error initializing database:', error);
     console.error('❌ Error details:', {
       message: error.message,
       code: error.code,
-      detail: error.detail
+      detail: error.detail,
+      stack: error.stack
     });
     throw error;
   }

@@ -597,11 +597,32 @@ app.use('*', (req, res) => {
 const startServer = async () => {
   try {
     await initializeDatabase();
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
       console.log(`API available at http://localhost:${PORT}/api`);
       console.log(`Database connected successfully`);
     });
+
+    // Graceful shutdown
+    const shutdown = async () => {
+      console.log('\n🛑 Shutting down gracefully...');
+      server.close(() => {
+        console.log('✅ HTTP server closed');
+      });
+      
+      try {
+        await pool.end();
+        console.log('✅ Database pool closed');
+        process.exit(0);
+      } catch (error) {
+        console.error('❌ Error during shutdown:', error);
+        process.exit(1);
+      }
+    };
+
+    // Listen for termination signals
+    process.on('SIGTERM', shutdown);
+    process.on('SIGINT', shutdown);
   } catch (error) {
     console.error('Failed to start server:', error);
     process.exit(1);
